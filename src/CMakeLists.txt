@@ -1,12 +1,10 @@
-set(SOURCES
+# Source files in the src directory
+set(SRC_FILES
+    hashmap.cpp
+    redis.cpp
     server.cpp
     store.cpp
-    redis.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES})
-
-target_include_directories(${PROJECT_NAME}
-    PUBLIC 
-        ${PROJECT_SOURCE_DIR}/include
-)
+# Create an executable target from the source files
+add_executable(server ${SRC_FILES})
