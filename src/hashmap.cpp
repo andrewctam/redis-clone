@@ -1,14 +1,20 @@
 #include "hashmap.h"
 
 template<typename V>
-HashMap<V>::HashMap() {
+HashMap<V>::HashMap(): capacity(DEFAULT_INITIAL_CAPACITY) {
+    capacity = DEFAULT_INITIAL_CAPACITY;
     buckets.resize(capacity);
 }
 
 template<typename V>
-int HashMap<V>::hash_function(const std::string& key) {
+HashMap<V>::HashMap(int inital_capacity): capacity(inital_capacity) {
+    buckets.resize(inital_capacity);
+}
+
+template<typename V>
+int HashMap<V>::hash_function(const std::string& key, int elements) {
     std::hash<std::string> hasher;
-    return hasher(key) % capacity;
+    return hasher(key) % elements;
 }
 
 template<typename V>
@@ -23,7 +29,7 @@ void HashMap<V>::rehash() {
 
     for (const auto& bucket : buckets) {
         for (const auto& entry : bucket) {
-            int hash = hash_function(entry.key);
+            int hash = hash_function(entry.key, doubled);
             more_buckets[hash].emplace_back(entry.key, entry.value);
         }
     }
@@ -34,7 +40,7 @@ void HashMap<V>::rehash() {
 
 template <typename V>
 void HashMap<V>::add(const std::string& key, V* value) {
-    int hash = hash_function(key);
+    int hash = hash_function(key, capacity);
     auto& bucket = buckets[hash];
 
     for (auto& entry : bucket) {
@@ -56,7 +62,7 @@ void HashMap<V>::add(const std::string& key, V* value) {
 
 template <typename V>
 V* HashMap<V>::get(const std::string& key) {
-    int hash = hash_function(key);
+    int hash = hash_function(key, capacity);
     auto& bucket = buckets[hash];
 
     for (auto& entry : bucket) {
@@ -65,13 +71,12 @@ V* HashMap<V>::get(const std::string& key) {
         }
     }
 
-    std::cerr << "Not found\n";
     return nullptr;
 }
 
 template <typename V>
 bool HashMap<V>::remove(const std::string& key) {
-    int hash = hash_function(key);
+    int hash = hash_function(key, capacity);
 
     for (auto it = buckets[hash].begin(); it != buckets[hash].end(); it++) {
         if (it->key == key) {
@@ -84,5 +89,14 @@ bool HashMap<V>::remove(const std::string& key) {
     return false;
 }
 
+template <typename V>
+int HashMap<V>::get_capacity() {
+    return capacity;
+}
+
+template <typename V>
+int HashMap<V>::get_size() {
+    return size;
+}
 
 

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
 
-TEST(Test, STORE_TESTS) {
+TEST(StoreTests, Test) {
     EXPECT_EQ(1, 1);
 }

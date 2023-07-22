@@ -1,7 +1,7 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
-#define INITAL_CAPACITTY 100
+#define DEFAULT_INITIAL_CAPACITY 100
 #define LOAD_FACTOR 0.75
 
 #include <iostream>
@@ -27,19 +27,23 @@ private:
         >
     > buckets;
 
-    int capacity = INITAL_CAPACITTY;
+    int capacity;
     int size = 0;
     float loadFactor = LOAD_FACTOR;
 
-    int hash_function(const std::string& key);
+    int hash_function(const std::string& key, int elements);
     void rehash();
 
 public:
     HashMap();
+    HashMap(int);
 
     void add(const std::string& key, V* value);
     V* get(const std::string& key);
     bool remove(const std::string& key);
+
+    int get_capacity();
+    int get_size();
 };
 
 #endif

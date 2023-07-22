@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
 
-TEST(Test1, REDIS_TESTS) {
+TEST(RedisTests, Test) {
     EXPECT_EQ(1, 1);
 }

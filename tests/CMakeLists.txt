@@ -13,8 +13,9 @@ FetchContent_MakeAvailable(googletest)
 
 set(TESTS tests)
 set(TEST_SOURCES
-    redis_tests.cpp
-    store_tests.cpp
+  hashmap_tests.cpp
+  redis_tests.cpp
+  store_tests.cpp
 )
 
 enable_testing()
