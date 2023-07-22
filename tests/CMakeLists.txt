@@ -14,7 +14,7 @@ FetchContent_MakeAvailable(googletest)
 set(TESTS tests)
 set(TEST_SOURCES
   hashmap_tests.cpp
-  redis_tests.cpp
+  command_tests.cpp
   store_tests.cpp
 )
 

@@ -8,23 +8,18 @@
 
 #include <math.h>
 
-
 #include "store.h"
-#include "redis.h"
+#include "command.h"
 
 #define MAX_CLIENTS 20
-#define PORT 9999
+#define PORT 9001
 
 using namespace std;
 
 int main() {
-    store::load_data_from_disk();
-
     fd_set readfds;
     int client_sockets[MAX_CLIENTS];
     std::memset(client_sockets, 0, sizeof(client_sockets));
-
-
 
     int main_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (main_fd < 0) {
@@ -114,9 +109,11 @@ int main() {
                     //disconnected, remove from clients 
                     close(sd); 
                     client_sockets[i] = 0;  
-                } else {  
-                    buf[num_read] = '\0';  
-                    send(sd, buf , strlen(buf) , 0 );  
+                } else { 
+                    buf[num_read] = '\0';
+                    Command cmd { buf };
+                    std::string res = cmd.parse_cmd();
+                    send(sd, res.c_str(), res.length(), 0);  
                 }  
             }  
         }  

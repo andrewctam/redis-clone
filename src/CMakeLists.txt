@@ -1,7 +1,7 @@
 # Source files in the src directory
 set(SRC_FILES
     hashmap.cpp
-    redis.cpp
+    command.cpp
     server.cpp
     store.cpp
 )
