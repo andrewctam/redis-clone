@@ -16,16 +16,17 @@ This project is a distributed in-memory cache cloning many of the features of Re
 - In `./build`, run `cmake ..` to create a makefile, then run `make` to run the makefile
 
 ## Running the server
-- Execute `./build/src/RedisClone` to start the server.
+- Execute `./build/src/server` to start the server.
 
 ## Running the tests cases
 - Execute `./build/tests/tests` to run all of the test cases
 
 
 # Usage
-- Once the server has started, you can send commands in the same terminal used to launch the server, or connect using a client.
-    - Using telnet: 
-        - Open a new terminal and run `telnet localhost 9999` to connect to the server. Then, you can start sending commands to the server.
+- Once the server has started, you can send commands to stdin (probably the terminal used to launch the server), or connect using a client.
+    - Using telnet: run `telnet localhost 9999` to connect to the server. Then, you can start sending commands to the server similar to.
     
 
 ## Commands
+- `echo [args]...` 
+    - Returns the args you send.
