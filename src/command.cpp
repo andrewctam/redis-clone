@@ -1,7 +1,7 @@
 #include "command.h"
 #include "hashmap.h"
 #include "server.h"
-
+#include "unix_secs.h"
 
 Command::Command(const std::string& str, bool admin): admin(admin) {
     if (monitoring) {
@@ -109,3 +109,37 @@ std::string Command::exists() {
 
     return std::to_string(count) + "\n";
 }
+
+std::string Command::expire() {
+    seconds::rep time = time_secs();
+    
+    long secs = 0;
+    try {
+        if (args.size() < 3) {
+            throw "No args provided";
+        }
+
+        time += std::stol(args[2]);
+    } catch(...) {
+        return "FAILURE\n";
+    }
+    
+    bool res = hashmap.set_expire(args[1], time);
+    return res ? std::to_string(time) + "\n": "FAILURE\n";
+}
+
+std::string Command::expireat() {
+    try {
+        if (args.size() < 3) {
+            throw "No args provided";
+        }
+
+        uint64_t unix_secs = std::stol(args[2]);
+
+        bool res = hashmap.set_expire(args[1], unix_secs);
+        return res ? "SUCCESS\n" : "FAILURE\n";
+    } catch(...) {
+        return "FAILURE\n";
+    }
+}
+

@@ -2,6 +2,7 @@
 
 #include "command.h"
 #include "server.h"
+#include "unix_secs.h"
 
 class CommandTests: public ::testing::Test {
 protected:
@@ -10,6 +11,7 @@ protected:
         monitoring = false;
         stop = false;
         hashmap = HashMap(5);
+        time_offset = 0;
     }
 };
 
@@ -128,4 +130,44 @@ TEST_F(CommandTests, Exists) {
 
     Command exists_not_included { "exists a z y 7" };
     EXPECT_EQ(exists_not_included.parse_cmd(), "1\n");
+}
+
+TEST_F(CommandTests, Expire) {
+    Command set { "set a 1" };
+    EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
+
+    Command expire { "expire a 50" };
+
+    std::string res = expire.parse_cmd();
+    std::string time = std::to_string(time_secs() + 50) + "\n";
+    //in case it is at the end of the second
+    std::string close = std::to_string(time_secs() + 51) + "\n";
+    EXPECT_TRUE(res == time || res == close);
+
+    Command get_a { "get a" };
+    EXPECT_EQ(get_a.parse_cmd(), "1\n");
+
+    //offset the time_secs() function;
+    time_offset = 100;
+
+    Command get { "get a" };
+    EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+}
+
+TEST_F(CommandTests, ExpireAt) {
+    Command set { "set a 1" };
+    EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
+
+    Command expire { "expireat a " + std::to_string(time_secs() + 50)};
+    EXPECT_EQ(expire.parse_cmd(), "SUCCESS\n");
+
+    Command get_a { "get a" };
+    EXPECT_EQ(get_a.parse_cmd(), "1\n");
+
+    //offset the time_secs() function;
+    time_offset = 100;
+
+    Command get { "get a" };
+    EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+
 }

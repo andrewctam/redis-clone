@@ -1,10 +1,12 @@
 #include "command.h"
-#include "server.h"
 #include "hashmap.h"
+#include "server.h"
+#include "unix_secs.h"
 
 bool monitoring = false;
 bool stop = false;
 HashMap hashmap {5};
+int time_offset = 0;
 
 void start_server() {
     fd_set readfds;
@@ -129,3 +131,4 @@ void start_server() {
     }
     close(main_fd);
 }
+

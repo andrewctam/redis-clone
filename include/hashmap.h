@@ -29,7 +29,6 @@ private:
         >
     > buckets;
 
-    int capacity;
     int size = 0;
     float loadFactor = LOAD_FACTOR;
 
@@ -47,7 +46,7 @@ public:
     int get_capacity();
     int get_size();
 
-    void clear();
+    bool set_expire(const std::string& key, std::time_t time);
 };
 
 #endif

@@ -19,6 +19,8 @@ private:
     std::string set();
     std::string del();
     std::string exists();
+    std::string expire();
+    std::string expireat();
 
 
     std::map<
@@ -32,6 +34,8 @@ private:
         {"set", std::bind(&Command::set, this)},
         {"del", std::bind(&Command::del, this)},
         {"exists", std::bind(&Command::exists, this)},
+        {"expire", std::bind(&Command::expire, this)},
+        {"expireat", std::bind(&Command::expireat, this)},
     };
 
 public:

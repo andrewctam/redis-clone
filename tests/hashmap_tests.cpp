@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "hashmap.h"
+#include "unix_secs.h"
 
 TEST(HashMapTests, AddAndRemove) {
     HashMap hashmap;
@@ -99,5 +100,25 @@ TEST(HashMapTests, KeySet) {
     std::set<std::string> set2(strs.begin(), strs.end());
 
     EXPECT_EQ(set1, set2);
+}
+
+TEST(HashMapTests, Expire) {
+    HashMap hashmap;
+
+    std::string value1 = "Value1";
+    std::string value2 = "Value2";
+
+    hashmap.add("key1", new StringEntry(value1));
+    EXPECT_EQ(
+        dynamic_cast<StringEntry*>(hashmap.get("key1"))->expiration, 
+        0);
+
+    seconds::rep future = time_secs() + 1000;
+    hashmap.set_expire("key1", future);
+    EXPECT_EQ(
+        dynamic_cast<StringEntry*>(hashmap.get("key1"))->expiration, 
+        future);
     
+    hashmap.set_expire("key1", 1);
+    EXPECT_EQ(hashmap.get("key1"), nullptr);    
 }
