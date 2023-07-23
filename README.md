@@ -29,27 +29,11 @@ This project is a distributed in-memory cache cloning many of the features of Re
     
 
 ## Commands
-- `echo [args ...]` 
-    - Returns the args you send.
-- `monitor`
-    - Can only be exectued from stdin, otherwise returns "DENIED".
-    - Toggles live montioring of commands (sent to stderr). Returns "ACTIVE" or "INACTIVE".
-- `shutdown`
-    - Can only be exectued from stdin, otherwise returns "DENIED".
-    - Stops the server.
-- `get key` 
-    - Returns the value of key, or "(NIL)" if no value is found.
-- `set key value` 
-    - Sets key to value. 
-    - Returns "SUCCESS" or "FAILURE" depending on if the operation was successful.
-- `del key [keys ...]` 
-    - Deletes the entries at the specified keys. Returns the number of keys that were removed.
-- `exists key [keys ...]`
-    - Returns the number of inputted keys that exist. 
-- `expire key secs`
-    - Expires the key after the specified seconds
-    - Returns the  unix seconds timestamp the key will expire at, or "FAILURE" if the key is not found.
-- `expire key unix`
-    - Expires the key at the specified unix seconds timestamp
-    - Returns "SUCCESS", or "FAILURE" if the key is not found.
-    
+- For a list of commands, see [COMMANDS.md](./COMMANDS.md)
+- Commands are case-insensitive, but keys/values are case sensitive
+    - `GET name andrew` is the same as `get name andrew` but is not the same as `GET name Andrew`
+- Optional parameters are indicated with square brackets and ellipses,
+    - For example, in `exists key [keys ...]`:
+        - `exists name` is valid
+        - `exists name1 name2 name3` is valid
+        - `exists` is invalid as at least one key must be provided
