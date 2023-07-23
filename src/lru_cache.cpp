@@ -1,24 +1,24 @@
-#include "hashmap.h"
+#include "lru_cache.h"
 #include "server.h"
 
-HashMap::HashMap(int inital_capacity) {
+LRUCache::LRUCache(int inital_capacity) {
     buckets.resize(inital_capacity);
 }
 
-int HashMap::hash_function(const std::string& key, int elements) {
+int LRUCache::hash_function(const std::string& key, int elements) {
     std::hash<std::string> hasher;
     return hasher(key) % elements;
 }
 
-int HashMap::get_capacity() {
+int LRUCache::get_capacity() {
     return buckets.size();
 }
 
-int HashMap::get_size() {
+int LRUCache::get_size() {
     return size;
 }
 
-void HashMap::rehash() {
+void LRUCache::rehash() {
     auto doubled = buckets.size() * 2;
 
     std::vector<
@@ -37,7 +37,7 @@ void HashMap::rehash() {
     buckets = std::move(more_buckets);
 }
 
-void HashMap::add(const std::string& key, BaseEntry *value) {
+void LRUCache::add(const std::string& key, BaseEntry *value) {
     int hash = hash_function(key, buckets.size());
     auto& bucket = buckets[hash];
 
@@ -57,7 +57,7 @@ void HashMap::add(const std::string& key, BaseEntry *value) {
     }
 }
 
-BaseEntry *HashMap::get(const std::string& key) {
+BaseEntry *LRUCache::get(const std::string& key) {
     int hash = hash_function(key, buckets.size());
     auto& bucket = buckets[hash];
 
@@ -79,7 +79,7 @@ BaseEntry *HashMap::get(const std::string& key) {
     return nullptr;
 }
 
-bool HashMap::remove(const std::string& key) {
+bool LRUCache::remove(const std::string& key) {
     int hash = hash_function(key, buckets.size());
     auto& bucket = buckets[hash];
 
@@ -95,7 +95,7 @@ bool HashMap::remove(const std::string& key) {
     return false;
 }
 
-std::vector<std::string> HashMap::key_set() {
+std::vector<std::string> LRUCache::key_set() {
     std::vector<std::string> keys;
     keys.reserve(size);
 
@@ -108,7 +108,7 @@ std::vector<std::string> HashMap::key_set() {
     return keys;
 }
 
-bool HashMap::set_expire(const std::string& key, std::time_t time) {
+bool LRUCache::set_expire(const std::string& key, std::time_t time) {
     int hash = hash_function(key, buckets.size());
     auto& bucket = buckets[hash];
 

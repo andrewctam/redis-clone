@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "hashmap.h"
+#include "lru_cache.h"
 
 constexpr int MAX_CLIENTS = 20;
 constexpr int PORT = 9001;
@@ -20,7 +20,7 @@ constexpr int PORT = 9001;
 extern bool monitoring;
 extern bool stop;
 
-extern HashMap hashmap;
+extern LRUCache cache;
 
 void start_server();
 

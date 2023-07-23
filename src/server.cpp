@@ -1,11 +1,11 @@
 #include "command.h"
-#include "hashmap.h"
+#include "lru_cache.h"
 #include "server.h"
 #include "unix_times.h"
 
 bool monitoring = false;
 bool stop = false;
-HashMap hashmap {5};
+LRUCache cache {5};
 int secs_offset = 0;
 
 void start_server() {

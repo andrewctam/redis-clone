@@ -12,7 +12,8 @@ FetchContent_MakeAvailable(googletest)
 
 # Test files
 set(TEST_SOURCES
-  hashmap_tests.cpp
+  lru_cache_tests.cpp
+  linked_list_tests.cpp
   command_tests.cpp
 )
 

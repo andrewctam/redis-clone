@@ -1,5 +1,5 @@
 #include "command.h"
-#include "hashmap.h"
+#include "lru_cache.h"
 #include "server.h"
 #include "unix_times.h"
 
@@ -70,7 +70,7 @@ std::string Command::keys() {
         return "DENIED\n";
     }
     
-    std::vector<std::string> keys = hashmap.key_set();
+    std::vector<std::string> keys = cache.key_set();
 
     std::stringstream ss;
     ss << "[";
@@ -125,7 +125,7 @@ std::string Command::get() {
         return "(NIL)\n";
     }
 
-    BaseEntry *entry = hashmap.get(args[1]);
+    BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
         return "(NIL)\n";
     }
@@ -153,9 +153,9 @@ std::string Command::set() {
         }
         
         int intVal = std::stoi(args[2]);
-        hashmap.add(args[1], new IntEntry(intVal));
+        cache.add(args[1], new IntEntry(intVal));
     } catch(...) {
-        hashmap.add(args[1], new StringEntry(args[2]));
+        cache.add(args[1], new StringEntry(args[2]));
     }
     return "SUCCESS\n";
 }
@@ -163,7 +163,7 @@ std::string Command::set() {
 std::string Command::del() {
     int count = 0;
     for (int i = 1; i < args.size(); i++) {
-        if (hashmap.remove(args[i])) {
+        if (cache.remove(args[i])) {
             count++;
         }
     }
@@ -174,7 +174,7 @@ std::string Command::del() {
 std::string Command::exists() {    
     int count = 0;
     for (int i = 1; i < args.size(); i++) {
-        if (hashmap.get(args[i])) {
+        if (cache.get(args[i])) {
             count++;
         }
     }
@@ -196,7 +196,7 @@ std::string Command::expire() {
         return "FAILURE\n";
     }
     
-    bool res = hashmap.set_expire(args[1], time);
+    bool res = cache.set_expire(args[1], time);
     return res ? std::to_string(time) + "\n": "FAILURE\n";
 }
 
@@ -208,7 +208,7 @@ std::string Command::expireat() {
 
         uint64_t unix_times = std::stol(args[2]);
 
-        bool res = hashmap.set_expire(args[1], unix_times);
+        bool res = cache.set_expire(args[1], unix_times);
         return res ? "SUCCESS\n" : "FAILURE\n";
     } catch(...) {
         return "FAILURE\n";
@@ -239,9 +239,9 @@ std::string Command::incrementer() {
         change *= -1;
     }
 
-    BaseEntry *entry = hashmap.get(args[1]);
+    BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
-        hashmap.add(args[1], new IntEntry(change));
+        cache.add(args[1], new IntEntry(change));
         return std::to_string(change) + "\n";
     }
 

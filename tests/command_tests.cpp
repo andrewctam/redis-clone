@@ -10,7 +10,7 @@ protected:
         // Reset global variables before each test case
         monitoring = false;
         stop = false;
-        hashmap = HashMap(5);
+        cache = LRUCache(5);
         secs_offset = 0;
     }
 };

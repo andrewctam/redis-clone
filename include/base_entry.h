@@ -1,6 +1,7 @@
 #ifndef BASE_ENTRY_H
 #define BASE_ENTRY_H
 
+#include <string>
 #include "unix_times.h"
 
 enum class ValueType {

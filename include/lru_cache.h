@@ -1,5 +1,5 @@
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#ifndef LRU_CACHE_H
+#define LRU_CACHE_H
 
 #include <iostream>
 #include <vector>
@@ -21,7 +21,7 @@ public:
     ~HashEntry() {}
 };
 
-class HashMap {
+class LRUCache {
 private:
     std::vector<
         std::list<
@@ -36,7 +36,7 @@ private:
     void rehash();
 
 public:
-    HashMap(int initial_size = DEFAULT_INITIAL_CAPACITY);
+    LRUCache(int initial_size = DEFAULT_INITIAL_CAPACITY);
     int get_capacity();
     int get_size();
 
@@ -44,8 +44,6 @@ public:
     BaseEntry *get(const std::string& key);
     bool remove(const std::string& key);
     std::vector<std::string> key_set();
-
-    
     bool set_expire(const std::string& key, std::time_t time);
 };
 

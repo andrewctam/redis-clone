@@ -1,6 +1,7 @@
 # Source files in the src directory
 set(SRC_FILES
-    hashmap.cpp
+    lru_cache.cpp
+    linked_list.cpp
     command.cpp
     server.cpp
 )
