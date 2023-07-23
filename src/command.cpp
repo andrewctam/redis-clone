@@ -1,7 +1,7 @@
 #include "command.h"
 #include "hashmap.h"
 #include "server.h"
-#include "unix_secs.h"
+#include "unix_times.h"
 
 
 Command::Command(const std::string& str, bool admin): admin(admin) {
@@ -66,6 +66,10 @@ std::string Command::shutdown() {
 
 
 std::string Command::keys() {
+    if (!admin) {
+        return "DENIED\n";
+    }
+    
     std::vector<std::string> keys = hashmap.key_set();
 
     std::stringstream ss;
@@ -80,6 +84,40 @@ std::string Command::keys() {
     ss << "]\n";
 
     return ss.str();
+}
+
+std::string Command::benchmark() {
+    if (!admin) {
+        return "DENIED\n";
+    }
+
+    long num = 0;
+    try {
+        if (args.size() < 2) {
+            throw "No num provided";
+        }
+
+        num = stol(args[1]);
+    } catch(...) {
+        return "FAILURE\n";
+    }
+    
+    std::srand(std::time(nullptr));
+
+    milliseconds::rep start = time_ms();
+
+    const int key_limit = 1000;
+    for (long i = 0; i < num; i++) {
+        if(i % 2) {
+            Command set { "set " + std::to_string(std::rand() % key_limit) + " " + std::to_string(std::rand()) };
+            set.parse_cmd();
+        } else {
+            Command get { "get " + std::to_string(std::rand() % key_limit)};
+            get.parse_cmd();
+        }
+    }
+    milliseconds::rep time_taken = time_ms() - start;
+    return std::to_string(time_taken) + " ms\n";
 }
 
 std::string Command::get() {
@@ -168,9 +206,9 @@ std::string Command::expireat() {
             throw "No args provided";
         }
 
-        uint64_t unix_secs = std::stol(args[2]);
+        uint64_t unix_times = std::stol(args[2]);
 
-        bool res = hashmap.set_expire(args[1], unix_secs);
+        bool res = hashmap.set_expire(args[1], unix_times);
         return res ? "SUCCESS\n" : "FAILURE\n";
     } catch(...) {
         return "FAILURE\n";

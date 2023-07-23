@@ -2,7 +2,7 @@
 
 #include "command.h"
 #include "server.h"
-#include "unix_secs.h"
+#include "unix_times.h"
 
 class CommandTests: public ::testing::Test {
 protected:
@@ -11,7 +11,7 @@ protected:
         monitoring = false;
         stop = false;
         hashmap = HashMap(5);
-        time_offset = 0;
+        secs_offset = 0;
     }
 };
 
@@ -59,6 +59,42 @@ TEST_F(CommandTests, Shutdown) {
     EXPECT_EQ(stop, true);
 }
 
+
+TEST_F(CommandTests, Keys) {
+    Command non_admin { "keys" };
+    EXPECT_EQ(non_admin.parse_cmd(), "DENIED\n");
+
+    Command keys_none { "keys", true };
+    EXPECT_EQ(keys_none.parse_cmd(), "[]\n");
+
+    Command set_a { "set a 1", true };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+    Command set_b { "set b 2", true };
+    EXPECT_EQ(set_b.parse_cmd(), "SUCCESS\n");
+
+    Command set_C { "set c 3", true };
+    EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
+
+    Command keys_1 { "keys", true };
+    EXPECT_EQ(keys_1.parse_cmd(), "[b a c]\n");
+
+    Command del_b { "del b", true };
+    EXPECT_EQ(del_b.parse_cmd(), "1\n");
+
+    Command keys_2 { "keys", true };
+    EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
+}
+
+TEST_F(CommandTests, Benchmark) {
+    Command non_admin { "benchmark 10", false };
+    EXPECT_EQ(non_admin.parse_cmd(), "DENIED\n");
+
+    Command benchmark { "benchmark 10", true };
+    std::string run_time = benchmark.parse_cmd();
+
+    EXPECT_TRUE(run_time == "0 ms\n" || "1 ms\n");
+}
 
 TEST_F(CommandTests, GetSet) {
     Command get_dne { "get a" };
@@ -149,7 +185,7 @@ TEST_F(CommandTests, Expire) {
     EXPECT_EQ(get_a.parse_cmd(), "1\n");
 
     //offset the time_secs() function;
-    time_offset = 100;
+    secs_offset = 100;
 
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
@@ -166,35 +202,13 @@ TEST_F(CommandTests, ExpireAt) {
     EXPECT_EQ(get_a.parse_cmd(), "1\n");
 
     //offset the time_secs() function;
-    time_offset = 100;
+    secs_offset = 100;
 
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
 }
 
 
-TEST_F(CommandTests, Keys) {
-    Command keys_none { "keys"};
-    EXPECT_EQ(keys_none.parse_cmd(), "[]\n");
-
-    Command set_a { "set a 1" };
-    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
-
-    Command set_b { "set b 2" };
-    EXPECT_EQ(set_b.parse_cmd(), "SUCCESS\n");
-
-    Command set_C { "set c 3"};
-    EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
-
-    Command keys_1 { "keys"};
-    EXPECT_EQ(keys_1.parse_cmd(), "[b a c]\n");
-
-    Command del_b { "del b" };
-    EXPECT_EQ(del_b.parse_cmd(), "1\n");
-
-    Command keys_2 { "keys"};
-    EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
-}
 
 TEST_F(CommandTests, IncrementersNotNum) {
     Command set_a { "set a notanum" };

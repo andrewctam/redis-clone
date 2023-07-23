@@ -2,16 +2,9 @@
 
 This project is a distributed in-memory cache cloning many of the features of Redis.
 
-#### Table of Contents
-- [Installation](#installation)
-    - [Running the server](#running-the-server)
-    - [Running the test cases](#running-the-test-cases)
-- [Usage](#usage)
-    - [Commands](#commands)
-
 # Installation
+- **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. You could also open this project on [GitHub's codespaces](https://github.com/codespaces).
 - Clone this repository: `git clone https://github.com/andrewctam/redis-clone.git`
-- On Windows, you should install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps.
 - Make sure you have cmake and a C++ compiler installed
 - In `./build`, run `cmake ..` to create a makefile, then run `make` to run the makefile
     - run `cmake -DTest=ON ..` to also build the tests

@@ -63,9 +63,9 @@ BaseEntry *HashMap::get(const std::string& key) {
 
     for (auto it = bucket.begin(); it != bucket.end(); it++) {
         if (it->key == key) {
-            seconds::rep unix_secs = time_secs();
+            seconds::rep unix_times = time_secs();
             seconds::rep expire = it->value->expiration;
-            if (expire > 0 && expire <= unix_secs) {
+            if (expire > 0 && expire <= unix_times) {
                 delete it->value;
                 bucket.erase(it);
                 size--;

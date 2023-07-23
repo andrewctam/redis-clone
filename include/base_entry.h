@@ -1,7 +1,7 @@
 #ifndef BASE_ENTRY_H
 #define BASE_ENTRY_H
 
-#include "unix_secs.h"
+#include "unix_times.h"
 
 enum class ValueType {
     none,

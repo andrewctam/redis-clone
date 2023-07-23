@@ -17,6 +17,9 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
     - Stops the server.
 - `keys`
     - Returns all keys.
+- `benchmark num`
+    - Performs num / 2 get commands and num / 2 set commands.
+    - Returns the time taken in ms.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or "(NIL)" if no value is found.

@@ -16,6 +16,7 @@ private:
     std::string monitor();
     std::string shutdown();
     std::string keys();
+    std::string benchmark();
     std::string get();
     std::string set();
     std::string del();
@@ -33,6 +34,7 @@ private:
         {"monitor", std::bind(&Command::monitor, this)},
         {"shutdown", std::bind(&Command::shutdown, this)},
         {"keys", std::bind(&Command::keys, this)},
+        {"benchmark", std::bind(&Command::benchmark, this)},
         {"get", std::bind(&Command::get, this)},
         {"set", std::bind(&Command::set, this)},
         {"del", std::bind(&Command::del, this)},

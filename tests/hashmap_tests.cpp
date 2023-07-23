@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "hashmap.h"
-#include "unix_secs.h"
+#include "unix_times.h"
 
 TEST(HashMapTests, AddAndRemove) {
     HashMap hashmap;
