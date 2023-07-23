@@ -109,6 +109,8 @@ TEST(HashMapTests, Expire) {
     std::string value2 = "Value2";
 
     hashmap.add("key1", new StringEntry(value1));
+    hashmap.add("key2", new StringEntry(value2));
+
     EXPECT_EQ(
         dynamic_cast<StringEntry*>(hashmap.get("key1"))->expiration, 
         0);
@@ -119,6 +121,10 @@ TEST(HashMapTests, Expire) {
         dynamic_cast<StringEntry*>(hashmap.get("key1"))->expiration, 
         future);
     
+    
     hashmap.set_expire("key1", 1);
-    EXPECT_EQ(hashmap.get("key1"), nullptr);    
+    EXPECT_EQ(hashmap.get_size(), 2); //lazy delete
+    EXPECT_EQ(hashmap.get("key1"), nullptr);
+    EXPECT_EQ(hashmap.get_size(), 1);
+
 }

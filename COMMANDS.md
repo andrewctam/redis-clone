@@ -15,7 +15,8 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
     - Toggles live montioring of commands (sent to stderr). Returns "ACTIVE" or "INACTIVE".
 - `shutdown`
     - Stops the server.
-    
+- `keys`
+    - Returns all keys.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or "(NIL)" if no value is found.
@@ -32,4 +33,18 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
 - `expireat key unix`
     - Expires the key at the specified unix seconds timestamp
     - Returns "SUCCESS", or "FAILURE" if the key is not found.
-    
+
+## Ints
+Setting a key to an integer will store it as an int, such as `set num 123`. The following commands can be used on ints, and will return "NOT AN INT" if used on other value types.
+- `incr key`
+    - Increments the value of key by 1. If the key does not exist, it is created and set to 1.
+    - Returns the new value of key.
+- `incrby key val`
+    - Increments the value of key by the specificed value. If the key does not exist, it is created and set to val.
+    - Returns the new value of key.
+- `decr key`
+    - Decrements the value of key by 1. If the key does not exist, it is created and set to -1.
+    - Returns the new value of key.
+- `decrby key val`
+    - Increments the value of key by the specificed value. If the key does not exist, it is created and set to -val.
+    - Returns the new value of key.

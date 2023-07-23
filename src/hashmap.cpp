@@ -10,6 +10,14 @@ int HashMap::hash_function(const std::string& key, int elements) {
     return hasher(key) % elements;
 }
 
+int HashMap::get_capacity() {
+    return buckets.size();
+}
+
+int HashMap::get_size() {
+    return size;
+}
+
 void HashMap::rehash() {
     auto doubled = buckets.size() * 2;
 
@@ -98,14 +106,6 @@ std::vector<std::string> HashMap::key_set() {
     }
 
     return keys;
-}
-
-int HashMap::get_capacity() {
-    return buckets.size();
-}
-
-int HashMap::get_size() {
-    return size;
 }
 
 bool HashMap::set_expire(const std::string& key, std::time_t time) {

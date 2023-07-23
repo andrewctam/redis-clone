@@ -15,11 +15,11 @@ This project is a distributed in-memory cache cloning many of the features of Re
 - Make sure you have cmake and a C++ compiler installed
 - In `./build`, run `cmake ..` to create a makefile, then run `make` to run the makefile
     - run `cmake -DTest=ON ..` to also build the tests
-## Running the server
+    
+### Running the server
 - In `./build`, execute `./src/server` to start the server.
 
-## Running the tests cases
-- Run `cmake  ..` then `make` to build the tests 
+### Running the tests cases
 - In `./build`, execute `./tests/tests` to run all of the test cases
 
 
@@ -30,8 +30,8 @@ This project is a distributed in-memory cache cloning many of the features of Re
 
 ## Commands
 - For a list of commands, see [COMMANDS.md](./COMMANDS.md)
-- Commands are case-insensitive, but keys/values are case sensitive
-    - `GET name andrew` is the same as `get name andrew` but is not the same as `GET name Andrew`
+- Commands are case-insensitive, but keys/values are case-sensitive
+    - `GET name Andrew` is the same as `get name Andrew` but is not the same as `GET NAME Andrew`
 - Optional parameters are indicated with square brackets and ellipses,
     - For example, in `exists key [keys ...]`:
         - `exists name` is valid

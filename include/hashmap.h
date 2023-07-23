@@ -37,15 +37,15 @@ private:
 
 public:
     HashMap(int initial_size = DEFAULT_INITIAL_CAPACITY);
+    int get_capacity();
+    int get_size();
 
     void add(const std::string& key, BaseEntry *value);
     BaseEntry *get(const std::string& key);
     bool remove(const std::string& key);
     std::vector<std::string> key_set();
 
-    int get_capacity();
-    int get_size();
-
+    
     bool set_expire(const std::string& key, std::time_t time);
 };
 

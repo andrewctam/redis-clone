@@ -5,7 +5,8 @@
 
 enum class ValueType {
     none,
-    str 
+    str,
+    integer
 };
 
 class BaseEntry {
@@ -22,6 +23,14 @@ public:
     std::string value;
 
     StringEntry(std::string value): value(value) {}
+};
+
+class IntEntry: public BaseEntry {
+public:
+    ValueType get_type() { return ValueType::integer; }
+    int value;
+
+    IntEntry(int value): value(value) {}
 };
 
 #endif

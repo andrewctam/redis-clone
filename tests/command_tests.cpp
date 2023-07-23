@@ -59,6 +59,7 @@ TEST_F(CommandTests, Shutdown) {
     EXPECT_EQ(stop, true);
 }
 
+
 TEST_F(CommandTests, GetSet) {
     Command get_dne { "get a" };
     EXPECT_EQ(get_dne.parse_cmd(), "(NIL)\n");
@@ -169,5 +170,109 @@ TEST_F(CommandTests, ExpireAt) {
 
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+}
+
+
+TEST_F(CommandTests, Keys) {
+    Command keys_none { "keys"};
+    EXPECT_EQ(keys_none.parse_cmd(), "[]\n");
+
+    Command set_a { "set a 1" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+    Command set_b { "set b 2" };
+    EXPECT_EQ(set_b.parse_cmd(), "SUCCESS\n");
+
+    Command set_C { "set c 3"};
+    EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
+
+    Command keys_1 { "keys"};
+    EXPECT_EQ(keys_1.parse_cmd(), "[b a c]\n");
+
+    Command del_b { "del b" };
+    EXPECT_EQ(del_b.parse_cmd(), "1\n");
+
+    Command keys_2 { "keys"};
+    EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
+}
+
+TEST_F(CommandTests, IncrementersNotNum) {
+    Command set_a { "set a notanum" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+    Command incr_fail { "incr a" };
+    EXPECT_EQ(incr_fail.parse_cmd(), "NOT AN INT\n");
+
+    Command incrby_fail { "incrby a 2" };
+    EXPECT_EQ(incrby_fail.parse_cmd(), "NOT AN INT\n");
+
+    Command decr_fail { "decr a" };
+    EXPECT_EQ(decr_fail.parse_cmd(), "NOT AN INT\n");
+
+    Command decrby_fail { "decrby a 2" };
+    EXPECT_EQ(decrby_fail.parse_cmd(), "NOT AN INT\n");
+}
+
+TEST_F(CommandTests, Incrementers) {
+    Command set_a { "set a 0" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+
+    Command incr { "incr a" };
+    EXPECT_EQ(incr.parse_cmd(), "1\n");
+    Command get1 { "get a" };
+    EXPECT_EQ(get1.parse_cmd(), "1\n");
+
+
+    Command decr { "decr a" };
+    EXPECT_EQ(decr.parse_cmd(), "0\n");
+    Command get0 { "get a" };
+    EXPECT_EQ(get0.parse_cmd(), "0\n");
+
+
+    Command incrby { "incrby a 5" };
+    EXPECT_EQ(incrby.parse_cmd(), "5\n");
+    Command get5 { "get a" };
+    EXPECT_EQ(get5.parse_cmd(), "5\n");
+
+
+    Command decrby { "decrby a 12" };
+    EXPECT_EQ(decrby.parse_cmd(), "-7\n");
+    Command getn7 { "get a" };
+    EXPECT_EQ(getn7.parse_cmd(), "-7\n");
+
+
+    Command incrbyneg { "incrby a -5" };
+    EXPECT_EQ(incrbyneg.parse_cmd(), "-12\n");
+
+
+    Command decrbyneg { "decrby a -2" };
+    EXPECT_EQ(decrbyneg.parse_cmd(), "-10\n");
+}
+
+
+TEST_F(CommandTests, IncrementersInit) {
+    Command incr { "incr a" };
+    EXPECT_EQ(incr.parse_cmd(), "1\n");
+    Command geta { "get a" };
+    EXPECT_EQ(geta.parse_cmd(), "1\n");
+
+
+    Command decr { "decr b" };
+    EXPECT_EQ(decr.parse_cmd(), "-1\n");
+    Command getb { "get b" };
+    EXPECT_EQ(getb.parse_cmd(), "-1\n");
+
+
+    Command incrby { "incrby c 5" };
+    EXPECT_EQ(incrby.parse_cmd(), "5\n");
+    Command getc { "get c" };
+    EXPECT_EQ(getc.parse_cmd(), "5\n");
+
+
+    Command decrby { "decrby d 12" };
+    EXPECT_EQ(decrby.parse_cmd(), "-12\n");
+    Command getd { "get d" };
+    EXPECT_EQ(getd.parse_cmd(), "-12\n");
 
 }

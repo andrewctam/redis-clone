@@ -3,6 +3,7 @@
 #include "server.h"
 #include "unix_secs.h"
 
+
 Command::Command(const std::string& str, bool admin): admin(admin) {
     if (monitoring) {
         std::cerr << str << std::endl; 
@@ -14,12 +15,14 @@ Command::Command(const std::string& str, bool admin): admin(admin) {
 };
 
 std::string Command::parse_cmd() {
-
     if (args.size() == 0) {
         return "No Command Entered\n";
     }
 
-    auto it = cmdMap.find(args[0]);
+    std::string cmd = args[0];
+    std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+
+    auto it = cmdMap.find(cmd);
     if (it != cmdMap.end()) {
         return it->second();
     } else {
@@ -61,6 +64,24 @@ std::string Command::shutdown() {
     return "Stopping server...\n";
 }
 
+
+std::string Command::keys() {
+    std::vector<std::string> keys = hashmap.key_set();
+
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < keys.size(); ++i) {
+        if (i > 0) {
+            ss << " ";
+        }
+
+        ss << keys[i];
+    }
+    ss << "]\n";
+
+    return ss.str();
+}
+
 std::string Command::get() {
     if (args.size() < 2) {
         return "(NIL)\n";
@@ -71,7 +92,9 @@ std::string Command::get() {
         return "(NIL)\n";
     }
 
-    switch(entry->get_type()) {            
+    switch(entry->get_type()) { 
+        case ValueType::integer:
+            return std::to_string(dynamic_cast<IntEntry *>(entry)->value) + "\n";
         case ValueType::str:
             return dynamic_cast<StringEntry *>(entry)->value + "\n";
         default:
@@ -84,7 +107,18 @@ std::string Command::set() {
         return "FAILURE\n";
     }
 
-    hashmap.add(args[1], new StringEntry(args[2]));
+    try {
+        for(char& ch : args[2]) {
+            if (ch < '0' || ch > '9') {
+                throw "Not an int";
+            }
+        }
+        
+        int intVal = std::stoi(args[2]);
+        hashmap.add(args[1], new IntEntry(intVal));
+    } catch(...) {
+        hashmap.add(args[1], new StringEntry(args[2]));
+    }
     return "SUCCESS\n";
 }
 
@@ -143,3 +177,42 @@ std::string Command::expireat() {
     }
 }
 
+
+std::string Command::incrementer() {
+    int change = 1;
+    try {
+        if (args.size() < 2) {
+            throw "No key provided";
+        }
+
+        if ((args[0] == "incrby" || args[0] == "decrby") && args.size() < 3) {
+            throw "No amount provided";
+        }
+
+        if (args[0] == "incrby" || args[0] == "decrby") {
+            change = std::stoi(args[2]);
+        }
+
+    } catch (...) {
+        return "FAILURE\n";
+    }
+
+    if (args[0] == "decr" || args[0] == "decrby") {
+        change *= -1;
+    }
+
+    BaseEntry *entry = hashmap.get(args[1]);
+    if (!entry) {
+        hashmap.add(args[1], new IntEntry(change));
+        return std::to_string(change) + "\n";
+    }
+
+    if (entry->get_type() != ValueType::integer) {
+        return "NOT AN INT\n";
+    }
+
+    IntEntry *val = dynamic_cast<IntEntry *>(entry);
+    val->value += change;
+
+    return std::to_string(val->value) + "\n";
+}
