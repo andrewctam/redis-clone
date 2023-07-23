@@ -1,4 +1,4 @@
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -10,23 +10,23 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-
-set(TESTS tests)
+# Test files
 set(TEST_SOURCES
   hashmap_tests.cpp
   command_tests.cpp
-  store_tests.cpp
 )
 
 enable_testing()
 
-add_executable(${TESTS} ${TEST_SOURCES})
+# Create test executable
+add_executable(tests ${TEST_SOURCES})
 
+# Link to src files and gtest
 target_link_libraries(
-  ${TESTS} 
+  tests
+  src_lib 
   GTest::gtest_main
 )
 
-
 include(GoogleTest)
-gtest_discover_tests(${TESTS})
+gtest_discover_tests(tests)

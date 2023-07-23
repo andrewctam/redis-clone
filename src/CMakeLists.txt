@@ -3,8 +3,12 @@ set(SRC_FILES
     hashmap.cpp
     command.cpp
     server.cpp
-    store.cpp
 )
 
-# Create an executable target from the source files
-add_executable(server ${SRC_FILES})
+add_library(src_lib ${SRC_FILES})
+
+# Create an executable target with main
+add_executable(server main.cpp)
+
+# Link src files
+target_link_libraries(server src_lib)

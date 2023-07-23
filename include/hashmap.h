@@ -1,29 +1,31 @@
 #ifndef HASHMAP_H
 #define HASHMAP_H
 
-#define DEFAULT_INITIAL_CAPACITY 100
-#define LOAD_FACTOR 0.75
-
 #include <iostream>
 #include <vector>
 #include <list>
 #include <string>
 
-template<typename V>
+#include "base_entry.h"
+
+constexpr int DEFAULT_INITIAL_CAPACITY = 100;
+constexpr double LOAD_FACTOR = 0.75;
+
 class HashEntry {
 public:
     std::string key;
-    V *value;
+    BaseEntry *value;
 
-    HashEntry(const std::string& key, V* value): key(key), value(value) {}
+    HashEntry(const std::string& key, BaseEntry *value): key(key), value(value) { }
+
+    ~HashEntry() {}
 };
 
-template<typename V>
 class HashMap {
 private:
     std::vector<
         std::list<
-            HashEntry<V>
+            HashEntry
         >
     > buckets;
 
@@ -35,15 +37,17 @@ private:
     void rehash();
 
 public:
-    HashMap();
-    HashMap(int);
+    HashMap(int initial_size = DEFAULT_INITIAL_CAPACITY);
 
-    void add(const std::string& key, V* value);
-    V* get(const std::string& key);
+    void add(const std::string& key, BaseEntry *value);
+    BaseEntry *get(const std::string& key);
     bool remove(const std::string& key);
+    std::vector<std::string> key_set();
 
     int get_capacity();
     int get_size();
+
+    void clear();
 };
 
 #endif

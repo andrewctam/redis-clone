@@ -1,21 +1,12 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h> 
-#include <errno.h>
-#include <math.h>
-
-#include <cstring>
-#include <algorithm>
-#include <cstdlib>
-#include <iostream>
-
-#include "store.h"
 #include "command.h"
+#include "server.h"
+#include "hashmap.h"
 
-#define MAX_CLIENTS 20
-#define PORT 9001
+bool monitoring = false;
+bool stop = false;
+HashMap hashmap {5};
 
-int main() {
+void start_server() {
     fd_set readfds;
     std::vector<int> client_sockets;
 
@@ -93,8 +84,12 @@ int main() {
             std::string input;
             std::getline(std::cin, input);
 
-            Command cmd { input };
+            Command cmd { input, true };
             std::cout << cmd.parse_cmd();
+
+            if (stop) {
+                break;
+            }
 
             std::cout << "> ";
             std::flush(std::cout);
@@ -120,7 +115,7 @@ int main() {
                     
                 } else { 
                     buf[num_read] = '\0';
-                    Command cmd { buf };
+                    Command cmd { buf, false };
                     std::string res = cmd.parse_cmd();
                     send(sd, res.c_str(), res.length(), 0);  
                 }  
@@ -128,6 +123,9 @@ int main() {
         }  
     }
 
+    //clean up
+    for (int sd : client_sockets) {
+        close(sd);
+    }
     close(main_fd);
-    return EXIT_SUCCESS;
 }
