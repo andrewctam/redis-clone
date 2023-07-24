@@ -4,46 +4,40 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <unordered_map>
 #include <string>
 
 #include "base_entry.h"
+#include "linked_list.h"
 
-constexpr int DEFAULT_INITIAL_CAPACITY = 100;
-constexpr double LOAD_FACTOR = 0.75;
-
-class HashEntry {
-public:
-    std::string key;
-    BaseEntry *value;
-
-    HashEntry(const std::string& key, BaseEntry *value): key(key), value(value) { }
-
-    ~HashEntry() {}
-};
+constexpr int DEFAULT_INITIAL_SIZE = 100;
+constexpr int DEFAULT_MAX_SIZE = 1000000;
 
 class LRUCache {
 private:
-    std::vector<
-        std::list<
-            HashEntry
-        >
-    > buckets;
+    std::unordered_map<std::string, Node*> keyMap;
 
-    int size = 0;
-    float loadFactor = LOAD_FACTOR;
-
-    int hash_function(const std::string& key, int elements);
-    void rehash();
+    //LinkedList of CacheEntry
+    LinkedList entries; 
 
 public:
-    LRUCache(int initial_size = DEFAULT_INITIAL_CAPACITY);
-    int get_capacity();
-    int get_size();
+    LRUCache(int initial_size = DEFAULT_INITIAL_SIZE, int max_map_size = DEFAULT_MAX_SIZE);
+    
+    int max_size;
+    int size() { 
+        return keyMap.size();
+    }
 
     void add(const std::string& key, BaseEntry *value);
-    BaseEntry *get(const std::string& key);
     bool remove(const std::string& key);
-    std::vector<std::string> key_set();
+
+    BaseEntry *get(const std::string& key);
+    CacheEntry *get_cache_entry(const std::string& key);
+
+    std::vector<std::string> key_set() {
+        return entries.values();
+    }
+
     bool set_expire(const std::string& key, std::time_t time);
 };
 

@@ -131,9 +131,9 @@ std::string Command::get() {
     }
 
     switch(entry->get_type()) { 
-        case ValueType::integer:
+        case EntryType::integer:
             return std::to_string(dynamic_cast<IntEntry *>(entry)->value) + "\n";
-        case ValueType::str:
+        case EntryType::str:
             return dynamic_cast<StringEntry *>(entry)->value + "\n";
         default:
             return "NOT A STRING\n";
@@ -245,7 +245,7 @@ std::string Command::incrementer() {
         return std::to_string(change) + "\n";
     }
 
-    if (entry->get_type() != ValueType::integer) {
+    if (entry->get_type() != EntryType::integer) {
         return "NOT AN INT\n";
     }
 

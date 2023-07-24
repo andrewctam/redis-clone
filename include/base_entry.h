@@ -3,24 +3,43 @@
 
 #include <string>
 #include "unix_times.h"
+#include <iostream>
 
-enum class ValueType {
+enum class EntryType {
     none,
+    cache,
     str,
     integer
 };
 
 class BaseEntry {
 public:
-    virtual ValueType get_type() { return ValueType::none; }
+    virtual EntryType get_type() { return EntryType::none; }
+
+    virtual ~BaseEntry() { }
+};
+
+class CacheEntry: public BaseEntry {
+public:
+    EntryType get_type() { return EntryType::cache; }
+    std::string key;
+    BaseEntry *cached;
     seconds::rep expiration = 0; //0 = won't expire
 
-    ~BaseEntry() {}
+    bool expired() {
+        return (expiration > 0 && expiration <= time_secs());
+    }
+
+    CacheEntry(std::string key, BaseEntry *cached): key(key), cached(cached) {}
+    ~CacheEntry() {
+        delete cached;
+        std::cout << "Deleted" << std::endl;
+    }
 };
 
 class StringEntry: public BaseEntry {
 public:
-    ValueType get_type() { return ValueType::str; }
+    EntryType get_type() { return EntryType::str; }
     std::string value;
 
     StringEntry(std::string value): value(value) {}
@@ -28,7 +47,7 @@ public:
 
 class IntEntry: public BaseEntry {
 public:
-    ValueType get_type() { return ValueType::integer; }
+    EntryType get_type() { return EntryType::integer; }
     int value;
 
     IntEntry(int value): value(value) {}

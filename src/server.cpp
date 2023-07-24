@@ -5,7 +5,7 @@
 
 bool monitoring = false;
 bool stop = false;
-LRUCache cache {5};
+LRUCache cache {};
 int secs_offset = 0;
 
 void start_server() {

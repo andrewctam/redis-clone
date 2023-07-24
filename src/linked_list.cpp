@@ -32,6 +32,7 @@ Node *LinkedList::get_node(int i) {
     }
 }
 
+
 BaseEntry *LinkedList::get(int i) {
     Node *node = get_node(i);
     if (node) {
@@ -41,13 +42,15 @@ BaseEntry *LinkedList::get(int i) {
     }
 }
 
-bool LinkedList::add_end(BaseEntry *value) {
+Node *LinkedList::add_end(BaseEntry *value) {
     if (!value) {
-        return false;
+        return nullptr;
     }
 
-    Node *node = new Node(value);
+    return add_end(new Node(value));
+}
 
+Node *LinkedList::add_end(Node *node) {
     if (size == 0) {
         head = node;
         tail = node;
@@ -59,12 +62,12 @@ bool LinkedList::add_end(BaseEntry *value) {
     }
 
     size++;
-    return true;
+    return node;
 }
 
-bool LinkedList::add_front(BaseEntry *value) {
+Node *LinkedList::add_front(BaseEntry *value) {
     if (!value) {
-        return false;
+        return nullptr;
     }
 
     Node *node = new Node(value);
@@ -80,76 +83,73 @@ bool LinkedList::add_front(BaseEntry *value) {
     }
 
     size++;
-    return true;
+    return node;
 }
 
-bool LinkedList::remove_end(bool del) {
+BaseEntry *LinkedList::remove_end(bool del) {
     if (size == 0) {
-        return false;
-    }
-
-    if (size == 1) {
-        if (del) {
-            delete tail;
-        }
-        head = nullptr;
-        tail = nullptr;
-        size--;
-
-        return true;
+        return nullptr;
     }
 
     Node *cur = tail;
+    if (size == 1) {
+        head = nullptr;
+        tail = nullptr;
+    } else {
+        tail = tail->prev;
+        tail->next = nullptr;
+    }
 
-    tail = tail->prev;
-    tail->next = nullptr;
+    size--;
+    BaseEntry *val = cur->value;
     if (del) {
         delete cur;
+    } else {
+        cur->prev = nullptr;
+        cur->next = nullptr;
     }
-    size--;
-
-    return true;
+    return val;
 }
 
 
-bool LinkedList::remove_front(bool del) {
+BaseEntry *LinkedList::remove_front(bool del) {
     if (size == 0) {
-        return false;
-    }
-
-    if (size == 1) {
-        delete head;
-        head = nullptr;
-        tail = nullptr;
-        size--;
-
-        return true;
+        return nullptr;
     }
 
     Node *cur = head;
+    if (size == 1) {
+        head = nullptr;
+        tail = nullptr;
+    } else {
+        head = head->next;
+        head->prev = nullptr;
+    }
 
-    head = head->next;
-    head->prev = nullptr;
+    size--;
+    BaseEntry *val = cur->value;
     if (del) {
         delete cur;
+    } else {
+        cur->prev = nullptr;
+        cur->next = nullptr;
     }
-    size--;
 
-    return true;
+    return val;
 }
 
-bool LinkedList::remove(int i, bool del) {
-    Node * node = get_node(i);
+BaseEntry *LinkedList::remove(int i, bool del) {
+    Node *node = get_node(i);
     if (!node) {
-        return false;
+        return nullptr;
     }
 
     return remove_node(node, del);
 }
 
-bool LinkedList::remove_node(Node *node, bool del) {
+BaseEntry *LinkedList::remove_node(Node *node, bool del) {
     if (!node || size == 0) {
-        return false;
+        return nullptr;
     }
 
     if (node == head) {
@@ -164,41 +164,50 @@ bool LinkedList::remove_node(Node *node, bool del) {
     prev->next = next;
     next->prev = prev;
     size--;
+    BaseEntry *val = node->value;
 
     if (del) {
         delete node;
+    } else {
+        node->next = nullptr;
+        node->prev = nullptr;
     }
 
-    return true;
+    return val;
+
 }
 
-std::string LinkedList::values() {
-    std::stringstream ss;
-    ss << "[";
+std::vector<std::string> LinkedList::values() {
+    std::vector<std::string> vals;
+    vals.reserve(get_size());
 
     Node *cur = head;
     while (cur) {
-        if (cur != head) {
-            ss << " ";
-        }
         BaseEntry *value = cur->value;
-
         switch (value->get_type()) {
-             case ValueType::integer:
-                ss << std::to_string(dynamic_cast<IntEntry *>(value)->value);
+             case EntryType::integer:
+                vals.emplace_back(
+                    std::to_string(dynamic_cast<IntEntry *>(value)->value));
                 break;
-            case ValueType::str:
-                ss << dynamic_cast<StringEntry *>(value)->value;
+            case EntryType::str:
+                vals.emplace_back(
+                    dynamic_cast<StringEntry *>(value)->value);
                 break;
+            case EntryType::cache: {
+                CacheEntry *cache_entry = dynamic_cast<CacheEntry *>(value);
+                if (!cache_entry->expired()) {
+                    vals.emplace_back(cache_entry->key);
+                }
+                break;
+            }
             default:
-                ss << "?";
+                vals.emplace_back("?");
         }
 
         cur = cur->next;
 
     }
 
-    ss << "]";
-
-    return ss.str();
+    return vals;
 }
+

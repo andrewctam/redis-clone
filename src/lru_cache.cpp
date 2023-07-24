@@ -1,78 +1,71 @@
 #include "lru_cache.h"
 #include "server.h"
 
-LRUCache::LRUCache(int inital_capacity) {
-    buckets.resize(inital_capacity);
-}
-
-int LRUCache::hash_function(const std::string& key, int elements) {
-    std::hash<std::string> hasher;
-    return hasher(key) % elements;
-}
-
-int LRUCache::get_capacity() {
-    return buckets.size();
-}
-
-int LRUCache::get_size() {
-    return size;
-}
-
-void LRUCache::rehash() {
-    auto doubled = buckets.size() * 2;
-
-    std::vector<
-        std::list<
-            HashEntry
-        >
-    > more_buckets { doubled };
-
-    for (const auto& bucket : buckets) {
-        for (const auto& entry : bucket) {
-            int hash = hash_function(entry.key, doubled);
-            more_buckets[hash].emplace_back(entry);
-        }
+LRUCache::LRUCache(int inital_size, int max_map_size): max_size(max_map_size) {
+    if (max_map_size > keyMap.max_size()) {
+        max_size = keyMap.max_size();
     }
-
-    buckets = std::move(more_buckets);
+    keyMap.reserve(inital_size);
 }
 
 void LRUCache::add(const std::string& key, BaseEntry *value) {
-    int hash = hash_function(key, buckets.size());
-    auto& bucket = buckets[hash];
+    CacheEntry *existing = get_cache_entry(key);
 
-    for (auto& entry : bucket) {
-        if (entry.key == key) {
-            entry.value = value;
-            return;
+    if (existing) {
+        if (existing->get_type() == EntryType::cache) {
+            existing->cached = value;
         }
+        return;
     }
 
-    bucket.emplace_back(key, value);
+    if (size() >= max_size) {
+        BaseEntry *lru = entries.remove_front(true);
 
-    size++;
-
-    if (static_cast<float> (size) / buckets.size() >= loadFactor) {
-        rehash();
+        if (lru->get_type() == EntryType::cache) {
+            CacheEntry *old_entry = dynamic_cast<CacheEntry*>(lru);
+            keyMap.erase(old_entry->key);
+        }
+        delete lru;
     }
+
+    CacheEntry *entry = new CacheEntry(key, value);
+    Node *node = entries.add_end(entry);
+    keyMap.insert({key, node});
 }
 
 BaseEntry *LRUCache::get(const std::string& key) {
-    int hash = hash_function(key, buckets.size());
-    auto& bucket = buckets[hash];
+    CacheEntry *cache_entry = get_cache_entry(key);
 
-    for (auto it = bucket.begin(); it != bucket.end(); it++) {
-        if (it->key == key) {
-            seconds::rep unix_times = time_secs();
-            seconds::rep expire = it->value->expiration;
-            if (expire > 0 && expire <= unix_times) {
-                delete it->value;
-                bucket.erase(it);
-                size--;
-                return nullptr;
-            }
+    if (cache_entry) {
+        return cache_entry->cached;
+    } else {
+        return nullptr;
+    }
+}
 
-            return it->value;
+CacheEntry *LRUCache::get_cache_entry(const std::string& key) {
+    auto it = keyMap.find(key);
+
+    if (it == keyMap.end()) {
+        return nullptr;
+    }
+
+    Node *node = it->second;
+
+    //bring node to front of list
+    BaseEntry *entry = entries.remove_node(node, false);
+    entries.add_end(node);
+    
+    if (entry->get_type() == EntryType::cache) {
+        CacheEntry * cache_entry = dynamic_cast<CacheEntry*>(entry);
+
+        if (cache_entry->expired()) {
+            keyMap.erase(it);
+            entries.remove_node(node, true);
+
+            return nullptr;
+        } else {
+            return cache_entry;
         }
     }
 
@@ -80,43 +73,25 @@ BaseEntry *LRUCache::get(const std::string& key) {
 }
 
 bool LRUCache::remove(const std::string& key) {
-    int hash = hash_function(key, buckets.size());
-    auto& bucket = buckets[hash];
+    auto it = keyMap.find(key);
 
-    for (auto it = bucket.begin(); it != bucket.end(); it++) {
-        if (it->key == key) {
-            delete it->value;
-            bucket.erase(it);
-            size--;
-            return true;
-        }
-    }    
-
-    return false;
-}
-
-std::vector<std::string> LRUCache::key_set() {
-    std::vector<std::string> keys;
-    keys.reserve(size);
-
-    for (const auto& bucket : buckets) {
-        for (const auto& entry : bucket) {
-            keys.emplace_back(entry.key);
-        }
+    if (it == keyMap.end()) {
+        return false;
     }
+    
+    Node *node = it->second;
+    keyMap.erase(it);
 
-    return keys;
+    entries.remove_node(node, true);
+    return true;
 }
+
 
 bool LRUCache::set_expire(const std::string& key, std::time_t time) {
-    int hash = hash_function(key, buckets.size());
-    auto& bucket = buckets[hash];
-
-    for (auto& entry : bucket) {
-        if (entry.key == key) {
-            entry.value->expiration = time;
-            return true;
-        }
+    CacheEntry *cache_entry = get_cache_entry(key);
+    if (cache_entry) {
+        cache_entry->expiration = time;
+        return true;
     }
 
     return false;

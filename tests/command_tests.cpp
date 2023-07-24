@@ -77,7 +77,7 @@ TEST_F(CommandTests, Keys) {
     EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
 
     Command keys_1 { "keys", true };
-    EXPECT_EQ(keys_1.parse_cmd(), "[b a c]\n");
+    EXPECT_EQ(keys_1.parse_cmd(), "[a b c]\n");
 
     Command del_b { "del b", true };
     EXPECT_EQ(del_b.parse_cmd(), "1\n");

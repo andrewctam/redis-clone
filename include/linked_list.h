@@ -1,9 +1,12 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
-#include "base_entry.h"
 #include <sstream>
 #include <iostream>
+#include <vector>
+
+#include "base_entry.h"
+
 class Node {
 public:
     Node *next = nullptr;
@@ -21,7 +24,6 @@ private:
     Node *head = nullptr;
     Node *tail = nullptr;
 
-
 public:
     int get_size();
 
@@ -31,16 +33,19 @@ public:
     Node *get_node(int i);
     BaseEntry *get(int i);
 
-    bool add_end(BaseEntry *value);
-    bool add_front(BaseEntry *value);
+    Node *add_end(BaseEntry *value);
+    Node *add_end(Node *value);
 
-    bool remove_end(bool del = true);
-    bool remove_front(bool del = true);
-    bool remove(int i, bool del = true);
-    bool remove_node(Node *node, bool del = true);
+    Node *add_front(BaseEntry *value);
 
-    std::string values();
+    // returns the removed node's value, or nullptr if failure. 
+    // If del is true, will free the node's memory.
+    BaseEntry *remove_end(bool del = true);
+    BaseEntry *remove_front(bool del = true);
+    BaseEntry *remove(int i, bool del = true);
+    BaseEntry *remove_node(Node *node, bool del = true);
 
+    std::vector<std::string> values();
 };
 
 
