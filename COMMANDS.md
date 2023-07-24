@@ -31,12 +31,17 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
 - `exists key [keys ...]`
     - Returns the number of inputted keys that exist. 
 - `expire key secs`
-    - Expires the key after the specified seconds
-    - Returns the  unix seconds timestamp the key will expire at, or "FAILURE" if the key is not found.
+    - Expires the key after the specified seconds.
+    - Returns the unix seconds timestamp the key will expire at, or "FAILURE" if the key is not found.
 - `expireat key unix`
-    - Expires the key at the specified unix seconds timestamp
+    - Expires the key at the specified unix seconds timestamp.
     - Returns "SUCCESS", or "FAILURE" if the key is not found.
-
+- `persist key`
+    - Removes the expiration set on key.
+    - Returns "SUCCESS", or "FAILURE" if there was no expiration or if the key was not found 
+- `dbsize`
+    - Returns the number of keys currently stored in the cache
+    - Expired keys are lazy deleted and may be falsely reflected in the count.
 ## Ints
 Setting a key to an integer will store it as an int, such as `set num 123`. The following commands can be used on ints, and will return "NOT AN INT" if used on other value types.
 - `incr key`

@@ -90,6 +90,11 @@ bool LRUCache::remove(const std::string& key) {
 bool LRUCache::set_expire(const std::string& key, std::time_t time) {
     CacheEntry *cache_entry = get_cache_entry(key);
     if (cache_entry) {
+        if (time == 0 && cache_entry->expiration == 0) {
+            //already 0
+            return false;
+        }
+
         cache_entry->expiration = time;
         return true;
     }

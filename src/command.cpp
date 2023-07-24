@@ -182,6 +182,11 @@ std::string Command::exists() {
     return std::to_string(count) + "\n";
 }
 
+std::string Command::dbsize() {    
+    return std::to_string(cache.size()) + "\n";
+}
+
+
 std::string Command::expire() {
     seconds::rep time = time_secs();
     
@@ -213,6 +218,18 @@ std::string Command::expireat() {
     } catch(...) {
         return "FAILURE\n";
     }
+}
+
+
+std::string Command::persist() {
+    seconds::rep time = time_secs();
+    
+    if (args.size() < 2) {
+        throw "No args provided";
+    }
+
+    bool res = cache.set_expire(args[1], 0);
+    return res ? "SUCCESS\n": "FAILURE\n";
 }
 
 

@@ -84,6 +84,9 @@ TEST_F(CommandTests, Keys) {
 
     Command keys_2 { "keys", true };
     EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "2\n");
 }
 
 TEST_F(CommandTests, Benchmark) {
@@ -117,6 +120,9 @@ TEST_F(CommandTests, GetSet) {
 
     Command get_new_a { "get a" };
     EXPECT_EQ(get_new_a.parse_cmd(), "3\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "2\n");
 }
 
 
@@ -141,6 +147,9 @@ TEST_F(CommandTests, Del) {
 
     Command remove_randoms { "del c d a e"};
     EXPECT_EQ(remove_randoms.parse_cmd(), "1\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "0\n");
 }
 
 TEST_F(CommandTests, Exists) {
@@ -167,14 +176,17 @@ TEST_F(CommandTests, Exists) {
 
     Command exists_not_included { "exists a z y 7" };
     EXPECT_EQ(exists_not_included.parse_cmd(), "1\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "3\n");
 }
+
 
 TEST_F(CommandTests, Expire) {
     Command set { "set a 1" };
     EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
 
     Command expire { "expire a 50" };
-
     std::string res = expire.parse_cmd();
     std::string time = std::to_string(time_secs() + 50) + "\n";
     //in case it is at the end of the second
@@ -187,8 +199,14 @@ TEST_F(CommandTests, Expire) {
     //offset the time_secs() function;
     secs_offset = 100;
 
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "1\n");
+
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+
+    Command dbsize_rm { "dbsize" };
+    EXPECT_EQ(dbsize_rm.parse_cmd(), "0\n");
 }
 
 TEST_F(CommandTests, ExpireAt) {
@@ -206,6 +224,34 @@ TEST_F(CommandTests, ExpireAt) {
 
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "0\n");
+}
+
+
+TEST_F(CommandTests, Persist) {
+    Command set { "set a 1" };
+    EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
+
+    Command persist_fail { "persist a" };
+    EXPECT_EQ(persist_fail.parse_cmd(), "FAILURE\n");
+
+    Command expire { "expire a 50" };
+    expire.parse_cmd();
+
+    Command persist { "persist a" };
+    EXPECT_EQ(persist.parse_cmd(), "SUCCESS\n");
+
+
+    //offset the time_secs() function;
+    secs_offset = 100;
+
+    Command get { "get a" };
+    EXPECT_EQ(get.parse_cmd(), "1\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "1\n");
 }
 
 
@@ -225,6 +271,9 @@ TEST_F(CommandTests, IncrementersNotNum) {
 
     Command decrby_fail { "decrby a 2" };
     EXPECT_EQ(decrby_fail.parse_cmd(), "NOT AN INT\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "1\n");
 }
 
 TEST_F(CommandTests, Incrementers) {
@@ -264,7 +313,6 @@ TEST_F(CommandTests, Incrementers) {
     EXPECT_EQ(decrbyneg.parse_cmd(), "-10\n");
 }
 
-
 TEST_F(CommandTests, IncrementersInit) {
     Command incr { "incr a" };
     EXPECT_EQ(incr.parse_cmd(), "1\n");
@@ -288,5 +336,4 @@ TEST_F(CommandTests, IncrementersInit) {
     EXPECT_EQ(decrby.parse_cmd(), "-12\n");
     Command getd { "get d" };
     EXPECT_EQ(getd.parse_cmd(), "-12\n");
-
 }

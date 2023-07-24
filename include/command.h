@@ -21,8 +21,10 @@ private:
     std::string set();
     std::string del();
     std::string exists();
+    std::string dbsize();
     std::string expire();
     std::string expireat();
+    std::string persist();
     std::string incrementer();
 
 
@@ -39,8 +41,10 @@ private:
         {"set", std::bind(&Command::set, this)},
         {"del", std::bind(&Command::del, this)},
         {"exists", std::bind(&Command::exists, this)},
+        {"dbsize", std::bind(&Command::dbsize, this)},
         {"expire", std::bind(&Command::expire, this)},
         {"expireat", std::bind(&Command::expireat, this)},
+        {"persist", std::bind(&Command::persist, this)},
         {"incr", std::bind(&Command::incrementer, this)},
         {"incrby", std::bind(&Command::incrementer, this)},
         {"decr", std::bind(&Command::incrementer, this)},
