@@ -85,20 +85,13 @@ std::string Command::keys() {
         return "DENIED\n";
     }
     
-    std::vector<std::string> keys = cache.key_set();
+    std::vector<std::string> keys = cache.key_set(true);
 
-    std::stringstream ss;
-    ss << "[";
-    for (size_t i = 0; i < keys.size(); ++i) {
-        if (i > 0) {
-            ss << " ";
-        }
-
-        ss << keys[i];
+    if (keys.size() == 0) {
+        return "ERROR\n";
     }
-    ss << "]\n";
 
-    return ss.str();
+    return keys[0] + "\n";
 }
 
 std::string Command::benchmark() {

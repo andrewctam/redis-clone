@@ -232,3 +232,13 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
     }
 }
 
+LinkedList::~LinkedList() {
+    Node *cur = head;
+
+    while (cur) {
+        Node *next = cur->next;
+        delete cur->value;
+        delete cur;
+        cur = next;
+    }
+}

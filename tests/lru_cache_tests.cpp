@@ -2,7 +2,8 @@
 
 #include "lru_cache.h"
 #include "unix_times.h"
-
+#include "linked_list.h"
+#include "entries/list_entry.h"
 
 TEST(LRUCacheTests, AddAndRemove) {
     LRUCache cache { };
@@ -135,4 +136,34 @@ TEST(LRUCacheTests, LRU) {
     std::vector<std::string> exp4 {"4", "5", "1", "2", "6"};
     EXPECT_EQ(cache.key_set(), exp4);
     EXPECT_EQ(cache.get("3"), nullptr);
+}
+
+
+TEST(LRUCacheTests, LRUTypes) {
+    LRUCache cache { 2, 2 };
+
+    ListEntry *list_entry = new ListEntry();
+    LinkedList *list = list_entry->list;
+    list->add_end(new StringEntry("1"));
+    list->add_end(new StringEntry("2"));
+    list->add_end(new StringEntry("3"));
+
+    cache.add("list", list_entry);
+    EXPECT_EQ(cache.get("list")->to_string(), "[1 2 3]");
+
+    cache.add("num", new IntEntry(1));
+    EXPECT_EQ(cache.get("num")->to_string(), "1");
+
+    std::vector<std::string> exp1 {"list", "num"};
+    EXPECT_EQ(cache.key_set(), exp1);
+
+    cache.add("str", new StringEntry("b"));
+    std::vector<std::string> exp2 {"num", "str"};
+    EXPECT_EQ(cache.key_set(), exp2);
+    EXPECT_EQ(cache.get("list"), nullptr);
+
+    cache.add("str2", new StringEntry("c"));    
+    std::vector<std::string> exp3 {"str", "str2"};
+    EXPECT_EQ(cache.key_set(), exp3);
+    EXPECT_EQ(cache.get("num"), nullptr);
 }

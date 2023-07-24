@@ -36,8 +36,12 @@ public:
     BaseEntry *get(const std::string& key);
     CacheEntry *get_cache_entry(const std::string& key);
 
-    std::vector<std::string> key_set() {
-        return entries.values();
+    std::vector<std::string> key_set(bool single_str = false) {
+        if (single_str) {
+            return entries.values(0, -1, false, true);    
+        } else {
+            return entries.values();
+        }
     }
 
     bool set_expire(const std::string& key, std::time_t time);

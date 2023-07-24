@@ -205,6 +205,9 @@ TEST_F(CommandTests, Expire) {
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
 
+    Command del { "del a" };
+    EXPECT_EQ(del.parse_cmd(), "0\n");
+
     Command dbsize_rm { "dbsize" };
     EXPECT_EQ(dbsize_rm.parse_cmd(), "0\n");
 }
@@ -224,6 +227,9 @@ TEST_F(CommandTests, ExpireAt) {
 
     Command get { "get a" };
     EXPECT_EQ(get.parse_cmd(), "(NIL)\n");
+
+    Command del { "del a" };
+    EXPECT_EQ(del.parse_cmd(), "0\n");
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "0\n");
@@ -252,6 +258,9 @@ TEST_F(CommandTests, Persist) {
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "1\n");
+
+    Command del { "del a" };
+    EXPECT_EQ(del.parse_cmd(), "1\n");
 }
 
 
@@ -443,6 +452,9 @@ TEST_F(CommandTests, LRange) {
 
     Command negative3 { "lrange a -10 -10" };
     EXPECT_EQ(negative3.parse_cmd(), "ERROR\n");
+
+    Command del { "del a" };
+    EXPECT_EQ(del.parse_cmd(), "1\n");
 }
 
 TEST_F(CommandTests, LRangeEmpty) {
@@ -487,5 +499,42 @@ TEST_F(CommandTests, LRangeEmpty) {
     EXPECT_EQ(get.parse_cmd(), "[4 3 2 1]\n");
     EXPECT_EQ(lpop.parse_cmd(), "[4 3 2 1]\n");
     EXPECT_EQ(get.parse_cmd(), "[]\n");
+}
 
+TEST_F(CommandTests, NotList) {
+    Command set { "set a 1" };
+    EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
+
+    Command lpush { "lpush a 1" };
+    EXPECT_EQ(lpush.parse_cmd(), "NOT A LIST\n");
+    
+    Command rpush { "rpush a 1" };
+    EXPECT_EQ(rpush.parse_cmd(), "NOT A LIST\n");
+
+    Command lpop { "lpop a" };
+    EXPECT_EQ(lpop.parse_cmd(), "NOT A LIST\n");
+
+    Command rpop { "rpop a" };
+    EXPECT_EQ(rpop.parse_cmd(), "NOT A LIST\n");
+
+    Command llen { "llen a" };
+    EXPECT_EQ(llen.parse_cmd(), "NOT A LIST\n");
+
+    Command lrange { "lrange a" };
+    EXPECT_EQ(lrange.parse_cmd(), "NOT A LIST\n");
+}
+
+
+TEST_F(CommandTests, SetList) {
+    Command lpush { "lpush a 1 2 3" };
+    EXPECT_EQ(lpush.parse_cmd(), "3\n");
+
+    Command set { "set a str" };
+    EXPECT_EQ(set.parse_cmd(), "SUCCESS\n");
+    
+    Command get { "get a" };
+    EXPECT_EQ(get.parse_cmd(), "str\n");
+
+    Command lpop { "lpop a" };
+    EXPECT_EQ(lpop.parse_cmd(), "NOT A LIST\n");
 }

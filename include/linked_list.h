@@ -29,13 +29,12 @@ public:
     int get_size();
 
     LinkedList() {}
-    ~LinkedList() {}
+    ~LinkedList();
 
     Node *get_node(int i);
     BaseEntry *get(int i);
 
     Node *add_end(BaseEntry *value);
-
     Node *add_front(BaseEntry *value);
 
     

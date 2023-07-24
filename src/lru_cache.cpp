@@ -43,6 +43,7 @@ void LRUCache::add(const std::string& key, BaseEntry *value) {
 
     if (existing) {
         if (existing->get_type() == EntryType::cache) {
+            delete existing->cached;
             existing->cached = value;
         }
         return;
