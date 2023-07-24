@@ -1,7 +1,7 @@
 #include "lru_cache.h"
 #include "server.h"
 
-LRUCache::LRUCache(int inital_size, int max_map_size): max_size(max_map_size) {
+LRUCache::LRUCache(long inital_size, long max_map_size): max_size(max_map_size) {
     if (max_map_size > keyMap.max_size()) {
         max_size = keyMap.max_size();
     }
@@ -19,15 +19,15 @@ CacheEntry *LRUCache::get_cache_entry(const std::string& key) {
     Node *node = it->second;
 
     //bring node to front of list
-    BaseEntry *entry = entries.remove_node(node, false);
-    entries.add_end(node);
+    BaseEntry *entry = entries.remove_node(node);
+    it->second = entries.add_end(entry);
     
     if (entry->get_type() == EntryType::cache) {
-        CacheEntry * cache_entry = dynamic_cast<CacheEntry*>(entry);
+        CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
 
         if (cache_entry->expired()) {
+            delete entries.remove_node(it->second);
             keyMap.erase(it);
-            entries.remove_node(node, true);
 
             return nullptr;
         } else {
@@ -49,12 +49,13 @@ void LRUCache::add(const std::string& key, BaseEntry *value) {
     }
 
     if (size() >= max_size) {
-        BaseEntry *lru = entries.remove_front(true);
+        BaseEntry *lru = entries.remove_front();
 
         if (lru->get_type() == EntryType::cache) {
             CacheEntry *old_entry = dynamic_cast<CacheEntry*>(lru);
             keyMap.erase(old_entry->key);
         }
+
         delete lru;
     }
 
@@ -83,7 +84,7 @@ bool LRUCache::remove(const std::string& key) {
     Node *node = it->second;
     keyMap.erase(it);
 
-    entries.remove_node(node, true);
+    delete entries.remove_node(node);
     return true;
 }
 

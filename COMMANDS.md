@@ -3,6 +3,8 @@
 - [Misc](#misc)
 - [Server](#server)
 - [Basic Cache](#basic-cache)
+- [Ints](#ints)
+- [Lists](#lists)
 
 ## Misc
 - `echo [args ...]` 
@@ -69,10 +71,10 @@ Use `lpush` or `rpush` to set a key to a Linked List, which can store either str
     - If count is provided, returns the first count elements from the head of the list stored at key.
     - If there is nothing stored at key, returns (NIL).
 - `lrange key [start] [stop]`
-    - Returns the elements of a list stored at key between start and stop (bounds are inclusive).
+    - Returns and removes the elements of a list stored at key between start and stop (bounds are inclusive).
     - If start is not provided, all elements will be returned.
     - If stop is not provided, all elements after start will be returned.
-    - -1 can be entered to indicate the last element, but other negative numbers will return an ERROR
+    - For the bounds, -1 can be entered to indicate the last element, but other negative numbers will return an ERROR
 - `rpop key [count]`
     - Same as lpop but from the tail of the list.
 - `llen key`

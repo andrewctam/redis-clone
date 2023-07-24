@@ -12,10 +12,8 @@
 
 #include "linked_list.h"
 
-constexpr int DEFAULT_INITIAL_SIZE = 100;
-constexpr int DEFAULT_MAX_SIZE = 1000000;
-
-
+constexpr long DEFAULT_INITIAL_SIZE = 100;
+constexpr long DEFAULT_MAX_SIZE = 5000;
 
 class LRUCache {
 private:
@@ -25,10 +23,10 @@ private:
     LinkedList entries; 
 
 public:
-    LRUCache(int initial_size = DEFAULT_INITIAL_SIZE, int max_map_size = DEFAULT_MAX_SIZE);
+    LRUCache(long initial_size = DEFAULT_INITIAL_SIZE, long max_map_size = DEFAULT_MAX_SIZE);
     
-    int max_size;
-    int size() { 
+    long max_size;
+    long size() { 
         return keyMap.size();
     }
 
@@ -44,7 +42,5 @@ public:
 
     bool set_expire(const std::string& key, std::time_t time);
 };
-
-
 
 #endif

@@ -351,13 +351,15 @@ std::string Command::list_pop() {
         
         BaseEntry* rem;
         if (rpop) {
-            rem = list->remove_end(true);
+            rem = list->remove_end();
         } else {
-            rem = list->remove_front(true);
+            rem = list->remove_front();
         }
 
         ss << rem->to_string();
         num--;
+
+        delete rem;
     }
 
     ss << "]\n";

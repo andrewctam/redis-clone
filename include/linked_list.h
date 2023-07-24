@@ -12,6 +12,7 @@ public:
     Node *next = nullptr;
     Node *prev = nullptr;
 
+    //user is responsible for deleting this
     BaseEntry *value;
 
     Node(BaseEntry *value): value(value) {}
@@ -34,16 +35,17 @@ public:
     BaseEntry *get(int i);
 
     Node *add_end(BaseEntry *value);
-    Node *add_end(Node *value);
 
     Node *add_front(BaseEntry *value);
 
-    // returns the removed node's value, or nullptr if failure. 
-    // If del is true, will free the node's memory.
-    BaseEntry *remove_end(bool del = true);
-    BaseEntry *remove_front(bool del = true);
-    BaseEntry *remove(int i, bool del = true);
-    BaseEntry *remove_node(Node *node, bool del = true);
+    
+    // deletes the nodes and returns the BaseEntry 
+    // user should free this BaseEntry after use
+    BaseEntry *remove_end();
+    BaseEntry *remove_front();
+    BaseEntry *remove(int i);
+    // node will be freed and should not be used again
+    BaseEntry *remove_node(Node *node);
 
     // returns elements between start and stop inclusive. 
     // if stop < 0, goes to the end of the list

@@ -49,10 +49,8 @@ Node *LinkedList::add_end(BaseEntry *value) {
         return nullptr;
     }
 
-    return add_end(new Node(value));
-}
+    Node *node = new Node(value);
 
-Node *LinkedList::add_end(Node *node) {
     if (size == 0) {
         head = node;
         tail = node;
@@ -88,7 +86,7 @@ Node *LinkedList::add_front(BaseEntry *value) {
     return node;
 }
 
-BaseEntry *LinkedList::remove_end(bool del) {
+BaseEntry *LinkedList::remove_end() {
     if (size == 0) {
         return nullptr;
     }
@@ -104,17 +102,13 @@ BaseEntry *LinkedList::remove_end(bool del) {
 
     size--;
     BaseEntry *val = cur->value;
-    if (del) {
-        delete cur;
-    } else {
-        cur->prev = nullptr;
-        cur->next = nullptr;
-    }
+    delete cur;
+    
     return val;
 }
 
 
-BaseEntry *LinkedList::remove_front(bool del) {
+BaseEntry *LinkedList::remove_front() {
     if (size == 0) {
         return nullptr;
     }
@@ -130,34 +124,29 @@ BaseEntry *LinkedList::remove_front(bool del) {
 
     size--;
     BaseEntry *val = cur->value;
-    if (del) {
-        delete cur;
-    } else {
-        cur->prev = nullptr;
-        cur->next = nullptr;
-    }
+    delete cur;
 
     return val;
 }
 
-BaseEntry *LinkedList::remove(int i, bool del) {
+BaseEntry *LinkedList::remove(int i) {
     Node *node = get_node(i);
     if (!node) {
         return nullptr;
     }
 
-    return remove_node(node, del);
+    return remove_node(node);
 }
 
-BaseEntry *LinkedList::remove_node(Node *node, bool del) {
+BaseEntry *LinkedList::remove_node(Node *node) {
     if (!node || size == 0) {
         return nullptr;
     }
 
     if (node == head) {
-        return remove_front(del);
+        return remove_front();
     } else if (node == tail) {
-        return remove_end(del);
+        return remove_end();
     }
 
     Node *next = node->next;
@@ -168,12 +157,7 @@ BaseEntry *LinkedList::remove_node(Node *node, bool del) {
     size--;
     BaseEntry *val = node->value;
 
-    if (del) {
-        delete node;
-    } else {
-        node->next = nullptr;
-        node->prev = nullptr;
-    }
+    delete node;
 
     return val;
 }
@@ -240,7 +224,6 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
         i++;
     }
 
-    
     if (single_str) {
         ss << "]";
         return { ss.str() };
