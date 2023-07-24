@@ -134,4 +134,5 @@ TEST(LRUCacheTests, LRU) {
     cache.add("6", new StringEntry("b"));
     std::vector<std::string> exp4 {"4", "5", "1", "2", "6"};
     EXPECT_EQ(cache.key_set(), exp4);
+    EXPECT_EQ(cache.get("3"), nullptr);
 }

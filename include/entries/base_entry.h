@@ -17,6 +17,7 @@ enum class EntryType {
 class BaseEntry {
 public:
     virtual EntryType get_type() { return EntryType::none; }
+    virtual std::string to_string() { return "?"; }
 
     virtual ~BaseEntry() { }
 };
@@ -29,6 +30,7 @@ public:
     EntryType get_type() { return EntryType::str; }
     std::string value;
 
+    std::string to_string() { return value; }
     StringEntry(std::string value): value(value) {}
 };
 
@@ -36,7 +38,8 @@ class IntEntry: public BaseEntry {
 public:
     EntryType get_type() { return EntryType::integer; }
     int value;
-
+    
+    std::string to_string() { return std::to_string(value); }
     IntEntry(int value): value(value) {}
 };
 

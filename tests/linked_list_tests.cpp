@@ -89,32 +89,32 @@ TEST(LinkedListTests, Reverse) {
 TEST(LinkedListTests, SingleString) {
     LinkedList list;
 
-    EXPECT_EQ(list.values(0, 0, false, true)[0], "[]\n");
-    EXPECT_EQ(list.values(0, 0, true, true)[0], "[]\n");
+    EXPECT_EQ(list.values(0, 0, false, true)[0], "[]");
+    EXPECT_EQ(list.values(0, 0, true, true)[0], "[]");
 
     for (int i = 0; i < 5; i++) {
         list.add_end(new StringEntry(std::to_string(i)));
     }
-    EXPECT_EQ(list.values(0, 5, false, true)[0], "[0 1 2 3 4]\n");
-    EXPECT_EQ(list.values(0, 5, true, true)[0], "[4 3 2 1 0]\n");
+    EXPECT_EQ(list.values(0, 5, false, true)[0], "[0 1 2 3 4]");
+    EXPECT_EQ(list.values(0, 5, true, true)[0], "[4 3 2 1 0]");
 
-    EXPECT_EQ(list.values(0, 3, false, true)[0], "[0 1 2 3]\n");
-    EXPECT_EQ(list.values(0, 3, true, true)[0], "[4 3 2 1]\n");
+    EXPECT_EQ(list.values(0, 3, false, true)[0], "[0 1 2 3]");
+    EXPECT_EQ(list.values(0, 3, true, true)[0], "[4 3 2 1]");
 
-    EXPECT_EQ(list.values(1, 4, false, true)[0], "[1 2 3 4]\n");
-    EXPECT_EQ(list.values(1, 4, true, true)[0], "[3 2 1 0]\n");
+    EXPECT_EQ(list.values(1, 4, false, true)[0], "[1 2 3 4]");
+    EXPECT_EQ(list.values(1, 4, true, true)[0], "[3 2 1 0]");
 
-    EXPECT_EQ(list.values(2, 4, false, true)[0], "[2 3 4]\n");
-    EXPECT_EQ(list.values(2, 4, true, true)[0], "[2 1 0]\n");
+    EXPECT_EQ(list.values(2, 4, false, true)[0], "[2 3 4]");
+    EXPECT_EQ(list.values(2, 4, true, true)[0], "[2 1 0]");
 
-    EXPECT_EQ(list.values(2, 2, false, true)[0], "[2]\n");
-    EXPECT_EQ(list.values(2, 2, true, true)[0], "[2]\n");
+    EXPECT_EQ(list.values(2, 2, false, true)[0], "[2]");
+    EXPECT_EQ(list.values(2, 2, true, true)[0], "[2]");
 
-    EXPECT_EQ(list.values(0, 0, false, true)[0], "[0]\n");
-    EXPECT_EQ(list.values(0, 0, true, true)[0], "[4]\n");
+    EXPECT_EQ(list.values(0, 0, false, true)[0], "[0]");
+    EXPECT_EQ(list.values(0, 0, true, true)[0], "[4]");
 
-    EXPECT_EQ(list.values(4, 4, false, true)[0], "[4]\n");
-    EXPECT_EQ(list.values(4, 4, true, true)[0], "[0]\n");
+    EXPECT_EQ(list.values(4, 4, false, true)[0], "[4]");
+    EXPECT_EQ(list.values(4, 4, true, true)[0], "[0]");
 }
 
 TEST(LinkedListTests, Adding) {

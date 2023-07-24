@@ -145,22 +145,7 @@ std::string Command::get() {
         return "(NIL)\n";
     }
 
-    switch(entry->get_type()) { 
-        case EntryType::integer:
-            return std::to_string(dynamic_cast<IntEntry *>(entry)->value) + "\n";
-        case EntryType::str:
-            return dynamic_cast<StringEntry *>(entry)->value + "\n";
-        case EntryType::list: {
-            ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
-            std::vector<std::string> str = list_entry->list->values(0, -1, false, true);
-            if (str.size() == 0) {
-                return "ERROR\n";
-            }
-
-            return str[0];
-        } default:
-            return "NOT A STRING\n";
-    }
+    return entry->to_string() + "\n";
 }
 
 std::string Command::set() {
@@ -371,17 +356,7 @@ std::string Command::list_pop() {
             rem = list->remove_front(true);
         }
 
-        switch(rem->get_type()) { 
-            case EntryType::integer:
-                ss << std::to_string(dynamic_cast<IntEntry *>(rem)->value);
-                break;
-            case EntryType::str:
-                ss << dynamic_cast<StringEntry *>(rem)->value;
-                break;
-            default:
-                ss << "?";
-        }
-
+        ss << rem->to_string();
         num--;
     }
 
@@ -452,7 +427,7 @@ std::string Command::lrange() {
         return "ERROR\n";
     }
 
-    return str[0];
+    return str[0] + "\n";
 }
 
 std::string Command::llen() {

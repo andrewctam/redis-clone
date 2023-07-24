@@ -8,6 +8,36 @@ LRUCache::LRUCache(int inital_size, int max_map_size): max_size(max_map_size) {
     keyMap.reserve(inital_size);
 }
 
+
+CacheEntry *LRUCache::get_cache_entry(const std::string& key) {
+    auto it = keyMap.find(key);
+
+    if (it == keyMap.end()) {
+        return nullptr;
+    }
+
+    Node *node = it->second;
+
+    //bring node to front of list
+    BaseEntry *entry = entries.remove_node(node, false);
+    entries.add_end(node);
+    
+    if (entry->get_type() == EntryType::cache) {
+        CacheEntry * cache_entry = dynamic_cast<CacheEntry*>(entry);
+
+        if (cache_entry->expired()) {
+            keyMap.erase(it);
+            entries.remove_node(node, true);
+
+            return nullptr;
+        } else {
+            return cache_entry;
+        }
+    }
+
+    return nullptr;
+}
+
 void LRUCache::add(const std::string& key, BaseEntry *value) {
     CacheEntry *existing = get_cache_entry(key);
 
@@ -41,35 +71,6 @@ BaseEntry *LRUCache::get(const std::string& key) {
     } else {
         return nullptr;
     }
-}
-
-CacheEntry *LRUCache::get_cache_entry(const std::string& key) {
-    auto it = keyMap.find(key);
-
-    if (it == keyMap.end()) {
-        return nullptr;
-    }
-
-    Node *node = it->second;
-
-    //bring node to front of list
-    BaseEntry *entry = entries.remove_node(node, false);
-    entries.add_end(node);
-    
-    if (entry->get_type() == EntryType::cache) {
-        CacheEntry * cache_entry = dynamic_cast<CacheEntry*>(entry);
-
-        if (cache_entry->expired()) {
-            keyMap.erase(it);
-            entries.remove_node(node, true);
-
-            return nullptr;
-        } else {
-            return cache_entry;
-        }
-    }
-
-    return nullptr;
 }
 
 bool LRUCache::remove(const std::string& key) {

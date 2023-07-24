@@ -449,7 +449,7 @@ TEST_F(CommandTests, LRangeEmpty) {
     Command rpush { "rpush a 1 2 3 4" };
     EXPECT_EQ(rpush.parse_cmd(), "4\n");
 
-    Command lpop { "lpop a 4" };
+    Command lpop { "lpop a 10" };
     EXPECT_EQ(lpop.parse_cmd(), "[1 2 3 4]\n");
 
     Command llen { "llen a" };
@@ -460,4 +460,32 @@ TEST_F(CommandTests, LRangeEmpty) {
 
     Command empty { "lrange a" };
     EXPECT_EQ(empty.parse_cmd(), "[]\n");
+
+    Command lpop2 { "lpop a" };
+    EXPECT_EQ(lpop2.parse_cmd(), "[]\n");
+    EXPECT_EQ(get.parse_cmd(), "[]\n");
+
+
+    Command rpop { "rpop a" };
+    EXPECT_EQ(rpop.parse_cmd(), "[]\n");
+    EXPECT_EQ(get.parse_cmd(), "[]\n");
+
+
+    Command rpop2 { "rpop a 10" };
+    EXPECT_EQ(rpop2.parse_cmd(), "[]\n");
+    EXPECT_EQ(get.parse_cmd(), "[]\n");
+
+
+    Command rpush2 { "rpush a 1 2 3 4" };
+    EXPECT_EQ(rpush2.parse_cmd(), "4\n");
+    EXPECT_EQ(get.parse_cmd(), "[1 2 3 4]\n");
+    EXPECT_EQ(lpop.parse_cmd(), "[1 2 3 4]\n");
+    EXPECT_EQ(get.parse_cmd(), "[]\n");
+
+    Command lpush { "lpush a 1 2 3 4" };
+    EXPECT_EQ(lpush.parse_cmd(), "4\n");
+    EXPECT_EQ(get.parse_cmd(), "[4 3 2 1]\n");
+    EXPECT_EQ(lpop.parse_cmd(), "[4 3 2 1]\n");
+    EXPECT_EQ(get.parse_cmd(), "[]\n");
+
 }

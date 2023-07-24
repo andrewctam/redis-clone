@@ -14,6 +14,8 @@ public:
         return (expiration > 0 && expiration <= time_secs());
     }
 
+    std::string to_string() { return key; }
+
     CacheEntry(std::string key, BaseEntry *cached): key(key), cached(cached) {}
     ~CacheEntry() {
         delete cached;

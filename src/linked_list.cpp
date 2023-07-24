@@ -219,50 +219,18 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
             first_element = false;
         }
 
-        switch (value->get_type()) {
-            case EntryType::integer: {
-                IntEntry *int_entry = dynamic_cast<IntEntry *>(value); 
+        //for cache entries, filter out expired
+        if ((value->get_type() != EntryType::cache) || 
+            !(dynamic_cast<CacheEntry *>(value)->expired())) {
                 
-                if (single_str) {
-                    ss << std::to_string(int_entry->value);
-                } else {
-                    vals.emplace_back(std::to_string(int_entry->value));
-                }
-
-                break;
+            std::string str = value->to_string();
+            if (single_str) {
+                ss << str;
+            } else {
+                vals.emplace_back(str);
             }
-            case EntryType::str: {
-                StringEntry *string_entry = dynamic_cast<StringEntry *>(value); 
-                
-                if (single_str) {
-                    ss << string_entry->value;
-                } else {
-                    vals.emplace_back(string_entry->value);    
-                }
-                
-                break;
-            } case EntryType::cache: {
-                CacheEntry *cache_entry = dynamic_cast<CacheEntry *>(value);
-                if (!cache_entry->expired()) {
-                    if (single_str) {
-                        ss << cache_entry->key;
-                    } else {
-                        vals.emplace_back(cache_entry->key);
-                    }
-                }
-
-                break;
-            }
-            default: {
-                if (single_str) {
-                    ss << "?";
-                } else {
-                    vals.emplace_back("?");
-                }
-            }
-                
         }
-
+        
         if (reverse) {
             cur = cur->prev;
         } else {
@@ -272,8 +240,9 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
         i++;
     }
 
+    
     if (single_str) {
-        ss << "]\n";
+        ss << "]";
         return { ss.str() };
     } else {
         return vals;
