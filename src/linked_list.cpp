@@ -1,4 +1,6 @@
 #include "linked_list.h"
+#include "entries/cache_entry.h"
+#include <sstream>
 
 int LinkedList::get_size() {
     return size;
@@ -174,40 +176,107 @@ BaseEntry *LinkedList::remove_node(Node *node, bool del) {
     }
 
     return val;
-
 }
 
-std::vector<std::string> LinkedList::values() {
-    std::vector<std::string> vals;
-    vals.reserve(get_size());
-
-    Node *cur = head;
-    while (cur) {
-        BaseEntry *value = cur->value;
-        switch (value->get_type()) {
-             case EntryType::integer:
-                vals.emplace_back(
-                    std::to_string(dynamic_cast<IntEntry *>(value)->value));
-                break;
-            case EntryType::str:
-                vals.emplace_back(
-                    dynamic_cast<StringEntry *>(value)->value);
-                break;
-            case EntryType::cache: {
-                CacheEntry *cache_entry = dynamic_cast<CacheEntry *>(value);
-                if (!cache_entry->expired()) {
-                    vals.emplace_back(cache_entry->key);
-                }
-                break;
-            }
-            default:
-                vals.emplace_back("?");
-        }
-
-        cur = cur->next;
-
+std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, bool single_str) {
+    if (start < 0) {
+        start = 0;
     }
 
-    return vals;
+    if (stop < 0 || stop >= get_size()) {
+        stop = get_size() - 1;
+    }
+
+    int i = 0;
+
+    Node *cur = head;
+    if (reverse) {
+        cur = tail;
+    }
+
+    std::stringstream ss;
+    std::vector<std::string> vals;
+    vals.reserve(stop - start + 1);
+
+    while (cur && i < start) {
+        i++;
+        if (reverse) {
+            cur = cur->prev;
+        } else {
+            cur = cur->next;
+        }
+    }
+    if (single_str) {
+        ss << "[";
+    }
+    bool first_element = true;
+    while (cur && i <= stop) {
+        BaseEntry *value = cur->value;
+
+        if (single_str && !first_element) {
+            ss << " ";
+        } else {
+            first_element = false;
+        }
+
+        switch (value->get_type()) {
+            case EntryType::integer: {
+                IntEntry *int_entry = dynamic_cast<IntEntry *>(value); 
+                
+                if (single_str) {
+                    ss << std::to_string(int_entry->value);
+                } else {
+                    vals.emplace_back(std::to_string(int_entry->value));
+                }
+
+                break;
+            }
+            case EntryType::str: {
+                StringEntry *string_entry = dynamic_cast<StringEntry *>(value); 
+                
+                if (single_str) {
+                    ss << string_entry->value;
+                } else {
+                    vals.emplace_back(string_entry->value);    
+                }
+                
+                break;
+            } case EntryType::cache: {
+                CacheEntry *cache_entry = dynamic_cast<CacheEntry *>(value);
+                if (!cache_entry->expired()) {
+                    if (single_str) {
+                        ss << cache_entry->key;
+                    } else {
+                        vals.emplace_back(cache_entry->key);
+                    }
+                }
+
+                break;
+            }
+            default: {
+                if (single_str) {
+                    ss << "?";
+                } else {
+                    vals.emplace_back("?");
+                }
+            }
+                
+        }
+
+        if (reverse) {
+            cur = cur->prev;
+        } else {
+            cur = cur->next;
+        }
+
+        i++;
+    }
+
+    if (single_str) {
+        ss << "]\n";
+        return { ss.str() };
+    } else {
+        return vals;
+    }
 }
 

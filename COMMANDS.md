@@ -18,8 +18,7 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
 - `keys`
     - Returns all keys.
 - `benchmark num`
-    - Performs num / 2 get commands and num / 2 set commands.
-    - Returns the time taken in ms.
+    - Performs num commands and returns the time taken in ms.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or "(NIL)" if no value is found.
@@ -56,3 +55,25 @@ Setting a key to an integer will store it as an int, such as `set num 123`. The 
 - `decrby key val`
     - Increments the value of key by the specificed value. If the key does not exist, it is created and set to -val.
     - Returns the new value of key.
+## Lists
+Use `lpush` or `rpush` to set a key to a Linked List, which can store either strings and ints. Using these commands on other data types will return "NOT A LIST".
+- `lpush key element [elements...]`
+    - Inserts the elements to the head of the list stored at key, creating the list if it does not exist.
+    - Elements are processed from left to right, so `LPUSH key 1 2 3` sets key to [3 2 1].
+    - Returns the new length of the list
+- `rpush key element [elements...]`
+    - Same as lpush but elements are inserted from the tail of the list.
+    - Elements are processed from left to right, so `RPUSH key 1 2 3` sets key to [1 2 3].
+- `lpop key [count]`
+    - If count is not provided, returns the head of the list stored at key.
+    - If count is provided, returns the first count elements from the head of the list stored at key.
+    - If there is nothing stored at key, returns (NIL).
+- `lrange key [start] [stop]`
+    - Returns the elements of a list stored at key between start and stop (bounds are inclusive).
+    - If start is not provided, all elements will be returned.
+    - If stop is not provided, all elements after start will be returned.
+    - -1 can be entered to indicate the last element, but other negative numbers will return an ERROR
+- `rpop key [count]`
+    - Same as lpop but from the tail of the list.
+- `llen key`
+    - Returns the length of the list stored at key, or 0 is nothing stored at key

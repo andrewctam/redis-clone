@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "base_entry.h"
+#include "entries/base_entry.h"
 
 class Node {
 public:
@@ -45,7 +45,12 @@ public:
     BaseEntry *remove(int i, bool del = true);
     BaseEntry *remove_node(Node *node, bool del = true);
 
-    std::vector<std::string> values();
+    // returns elements between start and stop inclusive. 
+    // if stop < 0, goes to the end of the list
+    // if reverse is true, will traverse the list in reverse
+    // if single_str is true, will return one string at index 0 representing the values
+    std::vector<std::string> values(int start = 0, int stop = -1,
+        bool reverse = false, bool single_str = false);
 };
 
 

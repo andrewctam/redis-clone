@@ -1,11 +1,120 @@
 #include "gtest/gtest.h"
 
 #include "linked_list.h"
+#include "entries/base_entry.h"
+#include "entries/cache_entry.h"
+#include "entries/list_entry.h"
 
 TEST(LinkedListTests, Empty) {
     LinkedList list;
     EXPECT_EQ(list.get_size(), 0);
     EXPECT_EQ(list.values().size(), 0);
+}
+
+TEST(LinkedListTests, Values) {
+    LinkedList list;
+
+    std::vector<std::string> exp_none { };
+    EXPECT_EQ(list.values(), exp_none);
+    EXPECT_EQ(list.values(0, -1), exp_none);
+    EXPECT_EQ(list.values(-1, -1), exp_none);
+    EXPECT_EQ(list.values(0), exp_none);
+
+    for (int i = 0; i < 5; i++) {
+        list.add_end(new StringEntry(std::to_string(i)));
+    }
+    
+    std::vector<std::string> exp_all {"0", "1", "2", "3", "4"};
+    EXPECT_EQ(list.values(), exp_all);
+    EXPECT_EQ(list.values(0, -1), exp_all);
+    EXPECT_EQ(list.values(-1, -1), exp_all);
+    EXPECT_EQ(list.values(0), exp_all);
+    EXPECT_EQ(list.values(0, 4), exp_all);
+    EXPECT_EQ(list.values(0, 10), exp_all);
+
+    std::vector<std::string> exp_some {"0", "1", "2", "3"};
+    EXPECT_EQ(list.values(0, 3), exp_some);
+
+    std::vector<std::string> exp_some2 {"1", "2", "3", "4"};
+    EXPECT_EQ(list.values(1), exp_some2);
+    EXPECT_EQ(list.values(1, 4), exp_some2);
+    EXPECT_EQ(list.values(1, -1), exp_some2);
+
+    std::vector<std::string> exp_some3 {"2", "3", "4"};
+    EXPECT_EQ(list.values(2, 4), exp_some3);
+
+    std::vector<std::string> exp_one {"2"};
+    EXPECT_EQ(list.values(2, 2), exp_one);
+
+    std::vector<std::string> exp_head {"0"};
+    EXPECT_EQ(list.values(0, 0), exp_head);
+
+    std::vector<std::string> exp_tail {"4"};
+    EXPECT_EQ(list.values(4, 4), exp_tail);
+}
+
+
+TEST(LinkedListTests, Reverse) {
+    LinkedList list;
+
+    std::vector<std::string> exp_none { };
+    EXPECT_EQ(list.values(0, 0, true), exp_none);
+
+    for (int i = 0; i < 5; i++) {
+        list.add_end(new StringEntry(std::to_string(i)));
+    }
+    
+    std::vector<std::string> exp_all {"4", "3", "2", "1", "0"};
+    EXPECT_EQ(list.values(0, -1, true), exp_all);
+
+    std::vector<std::string> exp_some {"4", "3", "2", "1"};
+    EXPECT_EQ(list.values(0, 3, true), exp_some);
+
+    std::vector<std::string> exp_some2 {"3", "2", "1", "0"};
+    EXPECT_EQ(list.values(1, 4, true), exp_some2);
+
+    std::vector<std::string> exp_some3 {"2", "1", "0"};
+    EXPECT_EQ(list.values(2, 4, true), exp_some3);
+
+    std::vector<std::string> exp_one {"2"};
+    EXPECT_EQ(list.values(2, 2, true), exp_one);
+
+    std::vector<std::string> exp_head {"4"};
+    EXPECT_EQ(list.values(0, 0, true), exp_head);
+
+    std::vector<std::string> exp_tail {"0"};
+    EXPECT_EQ(list.values(4, 4, true), exp_tail);
+}
+
+TEST(LinkedListTests, SingleString) {
+    LinkedList list;
+
+    EXPECT_EQ(list.values(0, 0, false, true)[0], "[]\n");
+    EXPECT_EQ(list.values(0, 0, true, true)[0], "[]\n");
+
+    for (int i = 0; i < 5; i++) {
+        list.add_end(new StringEntry(std::to_string(i)));
+    }
+    EXPECT_EQ(list.values(0, 5, false, true)[0], "[0 1 2 3 4]\n");
+    EXPECT_EQ(list.values(0, 5, true, true)[0], "[4 3 2 1 0]\n");
+
+    EXPECT_EQ(list.values(0, 3, false, true)[0], "[0 1 2 3]\n");
+    EXPECT_EQ(list.values(0, 3, true, true)[0], "[4 3 2 1]\n");
+
+    EXPECT_EQ(list.values(1, 4, false, true)[0], "[1 2 3 4]\n");
+    EXPECT_EQ(list.values(1, 4, true, true)[0], "[3 2 1 0]\n");
+
+    EXPECT_EQ(list.values(2, 4, false, true)[0], "[2 3 4]\n");
+    EXPECT_EQ(list.values(2, 4, true, true)[0], "[2 1 0]\n");
+
+    EXPECT_EQ(list.values(2, 2, false, true)[0], "[2]\n");
+    EXPECT_EQ(list.values(2, 2, true, true)[0], "[2]\n");
+
+    EXPECT_EQ(list.values(0, 0, false, true)[0], "[0]\n");
+    EXPECT_EQ(list.values(0, 0, true, true)[0], "[4]\n");
+
+    EXPECT_EQ(list.values(4, 4, false, true)[0], "[4]\n");
+    EXPECT_EQ(list.values(4, 4, true, true)[0], "[0]\n");
 }
 
 TEST(LinkedListTests, Adding) {
@@ -113,5 +222,4 @@ TEST(LinkedListTests, MixedTypes) {
     std::vector<std::string> exp {"a", "2", "3"};
 
     EXPECT_EQ(list.values(), exp);
-
 }

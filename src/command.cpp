@@ -2,7 +2,7 @@
 #include "lru_cache.h"
 #include "server.h"
 #include "unix_times.h"
-
+#include "entries/list_entry.h"
 
 Command::Command(const std::string& str, bool admin): admin(admin) {
     if (monitoring) {
@@ -13,6 +13,21 @@ Command::Command(const std::string& str, bool admin): admin(admin) {
     std::istream_iterator<std::string> begin (ss), end;
     args = std::vector<std::string> (begin, end);
 };
+
+BaseEntry *Command::str_to_base_entry(std::string str) {
+    try {
+        for(char& ch : str) {
+            if (ch < '0' || ch > '9') {
+                throw "Not an int";
+            }
+        }
+        
+        int intVal = std::stoi(str);
+        return new IntEntry(intVal);
+    } catch(...) {
+        return new StringEntry(str);
+    }
+}
 
 std::string Command::parse_cmd() {
     if (args.size() == 0) {
@@ -135,7 +150,15 @@ std::string Command::get() {
             return std::to_string(dynamic_cast<IntEntry *>(entry)->value) + "\n";
         case EntryType::str:
             return dynamic_cast<StringEntry *>(entry)->value + "\n";
-        default:
+        case EntryType::list: {
+            ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
+            std::vector<std::string> str = list_entry->list->values(0, -1, false, true);
+            if (str.size() == 0) {
+                return "ERROR\n";
+            }
+
+            return str[0];
+        } default:
             return "NOT A STRING\n";
     }
 }
@@ -145,18 +168,8 @@ std::string Command::set() {
         return "FAILURE\n";
     }
 
-    try {
-        for(char& ch : args[2]) {
-            if (ch < '0' || ch > '9') {
-                throw "Not an int";
-            }
-        }
-        
-        int intVal = std::stoi(args[2]);
-        cache.add(args[1], new IntEntry(intVal));
-    } catch(...) {
-        cache.add(args[1], new StringEntry(args[2]));
-    }
+    cache.add(args[1], str_to_base_entry(args[2]));
+
     return "SUCCESS\n";
 }
 
@@ -270,4 +283,195 @@ std::string Command::incrementer() {
     val->value += change;
 
     return std::to_string(val->value) + "\n";
+}
+
+
+std::string Command::list_push() {
+    if (args.size() < 3) {
+        return "FAILURE\n";
+    }
+
+    BaseEntry *entry = cache.get(args[1]);
+    LinkedList *list;
+    
+    ListEntry *list_entry;
+    if (!entry) {
+        list_entry = new ListEntry();
+        cache.add(args[1], list_entry);
+    } else if (entry->get_type() != EntryType::list) {
+        return "NOT A LIST\n";
+    } else {
+        list_entry = dynamic_cast<ListEntry*>(entry);
+    }
+
+    list = list_entry->list;
+    bool lpush = args[0] == "lpush";
+    
+    for (int i = 2; i < args.size(); i++) {
+        if (lpush) {
+            list->add_front(str_to_base_entry(args[i]));
+        } else {
+            list->add_end(str_to_base_entry(args[i]));
+        }
+    }
+
+    return std::to_string(list->get_size()) + "\n";
+}
+
+
+std::string Command::list_pop() {
+    if (args.size() < 2) {
+        return "FAILURE\n";
+    }
+    int num = 1;
+    if (args.size() > 2) {
+        try {
+            num = stoi(args[2]);
+
+            if (num == 0) {
+                return "[]\n";
+            } else if (num < 0) {
+                return "ERROR\n";
+            }
+        } catch (...) {
+            num = 1;
+        }
+    }
+
+    BaseEntry *entry = cache.get(args[1]);
+    
+    if (!entry) {
+        return "(NIL)\n";
+    } 
+
+    if (entry->get_type() != EntryType::list) {
+        return "NOT A LIST\n";
+    }
+
+    ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
+    LinkedList *list = list_entry->list;
+    bool rpop = args[0] == "rpop";
+
+    std::stringstream ss;
+    ss << "[";
+
+    num = std::min(num, list->get_size());
+    bool first_entry = true;
+    while (num > 0) {
+        if (!first_entry) {
+            ss << " ";
+        } else {
+            first_entry = false;
+        }
+        
+        BaseEntry* rem;
+        if (rpop) {
+            rem = list->remove_end(true);
+        } else {
+            rem = list->remove_front(true);
+        }
+
+        switch(rem->get_type()) { 
+            case EntryType::integer:
+                ss << std::to_string(dynamic_cast<IntEntry *>(rem)->value);
+                break;
+            case EntryType::str:
+                ss << dynamic_cast<StringEntry *>(rem)->value;
+                break;
+            default:
+                ss << "?";
+        }
+
+        num--;
+    }
+
+    ss << "]\n";
+    return ss.str();
+}
+
+std::string Command::lrange() {
+    if (args.size() < 2) {
+        return "FAILURE\n";
+    }
+    int start = 0;
+    int stop = -1;
+    if (args.size() > 2) {
+        try {
+            start = stoi(args[2]);
+
+            if (start < -1) {
+                return "ERROR\n";
+            }
+        } catch (...) {
+            start = 0;
+        }
+    }
+
+    if (args.size() > 3) {
+        try {
+            stop = stoi(args[3]);
+
+            if (stop < -1) {
+                return "ERROR\n";
+            }
+        } catch (...) {
+            stop = -1;
+        }
+    }
+
+    BaseEntry *entry = cache.get(args[1]);
+    
+    if (!entry) {
+        return "(NIL)\n";
+    } 
+
+    if (entry->get_type() != EntryType::list) {
+        return "NOT A LIST\n";
+    }
+
+    ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
+    LinkedList *list = list_entry->list;
+
+    int lim = list->get_size() - 1;
+    stop = std::min(stop, lim);
+
+    if (start > lim) {
+        return "[]\n";
+    }
+
+    if (start == -1) {
+        start = lim;
+    }
+    if (stop == -1) {
+        stop = lim;
+    }
+
+    std::vector<std::string> str = list->values(start, stop, false, true);
+
+    if (str.size() == 0) {
+        return "ERROR\n";
+    }
+
+    return str[0];
+}
+
+std::string Command::llen() {
+    if (args.size() < 2) {
+        return "FAILURE\n";
+    }
+
+    BaseEntry *entry = cache.get(args[1]);
+    
+    if (!entry) {
+        return "0\n";
+    } 
+
+    if (entry->get_type() != EntryType::list) {
+        return "NOT A LIST\n";
+    }
+
+    ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
+    LinkedList *list = list_entry->list;
+
+    return std::to_string(list->get_size()) + "\n";
 }

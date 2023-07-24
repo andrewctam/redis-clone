@@ -2,14 +2,16 @@
 #define BASE_ENTRY_H
 
 #include <string>
-#include "unix_times.h"
 #include <iostream>
+
+#include "unix_times.h"
 
 enum class EntryType {
     none,
     cache,
     str,
-    integer
+    integer,
+    list
 };
 
 class BaseEntry {
@@ -19,23 +21,8 @@ public:
     virtual ~BaseEntry() { }
 };
 
-class CacheEntry: public BaseEntry {
-public:
-    EntryType get_type() { return EntryType::cache; }
-    std::string key;
-    BaseEntry *cached;
-    seconds::rep expiration = 0; //0 = won't expire
 
-    bool expired() {
-        return (expiration > 0 && expiration <= time_secs());
-    }
-
-    CacheEntry(std::string key, BaseEntry *cached): key(key), cached(cached) {}
-    ~CacheEntry() {
-        delete cached;
-        std::cout << "Deleted" << std::endl;
-    }
-};
+// entries constructed of primitives
 
 class StringEntry: public BaseEntry {
 public:
@@ -52,5 +39,6 @@ public:
 
     IntEntry(int value): value(value) {}
 };
+
 
 #endif

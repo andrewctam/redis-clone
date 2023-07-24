@@ -7,6 +7,8 @@
 #include <map>
 #include <functional>
 
+#include "entries/base_entry.h"
+
 class Command {
 private:
     std::vector<std::string> args;
@@ -26,6 +28,10 @@ private:
     std::string expireat();
     std::string persist();
     std::string incrementer();
+    std::string list_push();
+    std::string list_pop();
+    std::string lrange();
+    std::string llen();
 
 
     std::map<
@@ -49,11 +55,18 @@ private:
         {"incrby", std::bind(&Command::incrementer, this)},
         {"decr", std::bind(&Command::incrementer, this)},
         {"decrby", std::bind(&Command::incrementer, this)},
+        {"lpush", std::bind(&Command::list_push, this)},
+        {"rpush", std::bind(&Command::list_push, this)},
+        {"lpop", std::bind(&Command::list_pop, this)},
+        {"rpop", std::bind(&Command::list_pop, this)},
+        {"lrange", std::bind(&Command::lrange, this)},
+        {"llen", std::bind(&Command::llen, this)},
     };
-
+    BaseEntry *str_to_base_entry(std::string str);
 public:
     Command(const std::string& str, bool admin = false);
     std::string parse_cmd();
+
 };
     
 #endif

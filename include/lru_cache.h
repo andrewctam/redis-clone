@@ -7,11 +7,15 @@
 #include <unordered_map>
 #include <string>
 
-#include "base_entry.h"
+#include "entries/base_entry.h"
+#include "entries/cache_entry.h"
+
 #include "linked_list.h"
 
 constexpr int DEFAULT_INITIAL_SIZE = 100;
 constexpr int DEFAULT_MAX_SIZE = 1000000;
+
+
 
 class LRUCache {
 private:
@@ -40,5 +44,7 @@ public:
 
     bool set_expire(const std::string& key, std::time_t time);
 };
+
+
 
 #endif
