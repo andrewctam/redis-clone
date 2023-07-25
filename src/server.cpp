@@ -86,13 +86,9 @@ void start_server() {
             std::string input;
             std::getline(std::cin, input);
 
-            Command cmd { input, true };
+            Command cmd { input };
             std::cout << cmd.parse_cmd();
-
-            if (stop) {
-                break;
-            }
-
+            
             std::cout << "> ";
             std::flush(std::cout);
         }
@@ -117,12 +113,16 @@ void start_server() {
                     
                 } else { 
                     buf[num_read] = '\0';
-                    Command cmd { buf, false };
+                    Command cmd { buf };
                     std::string res = cmd.parse_cmd();
                     send(sd, res.c_str(), res.length(), 0);  
                 }  
             }  
-        }  
+        }
+
+        if (stop) {
+            break;
+        }
     }
 
     //clean up

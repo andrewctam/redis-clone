@@ -43,11 +43,7 @@ TEST_F(CommandTests, ping) {
 }
 
 TEST_F(CommandTests, Monitor) {
-    Command cmd_non_admin { "monitor", false };
-    EXPECT_EQ(cmd_non_admin.parse_cmd(), "DENIED\n");
-    EXPECT_EQ(monitoring, false);
-
-    Command cmd_admin { "monitor", true };
+    Command cmd_admin { "monitor" };
     EXPECT_EQ(cmd_admin.parse_cmd(), "ACTIVE\n");
     EXPECT_EQ(monitoring, true);
 
@@ -56,39 +52,32 @@ TEST_F(CommandTests, Monitor) {
 }
 
 TEST_F(CommandTests, Shutdown) {
-    Command cmd_non_admin { "shutdown", false };
-    EXPECT_EQ(cmd_non_admin.parse_cmd(), "DENIED\n");
-    EXPECT_EQ(stop, false);
-
-    Command cmd_admin { "shutdown", true };
+    Command cmd_admin { "shutdown" };
     EXPECT_EQ(cmd_admin.parse_cmd(), "Stopping server...\n");
     EXPECT_EQ(stop, true);
 }
 
 
 TEST_F(CommandTests, Keys) {
-    Command non_admin { "keys" };
-    EXPECT_EQ(non_admin.parse_cmd(), "DENIED\n");
-
-    Command keys_none { "keys", true };
+    Command keys_none { "keys" };
     EXPECT_EQ(keys_none.parse_cmd(), "[]\n");
 
-    Command set_a { "set a 1", true };
+    Command set_a { "set a 1" };
     EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
 
-    Command set_b { "set b 2", true };
+    Command set_b { "set b 2" };
     EXPECT_EQ(set_b.parse_cmd(), "SUCCESS\n");
 
-    Command set_C { "set c 3", true };
+    Command set_C { "set c 3" };
     EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
 
-    Command keys_1 { "keys", true };
+    Command keys_1 { "keys" };
     EXPECT_EQ(keys_1.parse_cmd(), "[a b c]\n");
 
-    Command del_b { "del b", true };
+    Command del_b { "del b" };
     EXPECT_EQ(del_b.parse_cmd(), "1\n");
 
-    Command keys_2 { "keys", true };
+    Command keys_2 { "keys" };
     EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
 
     Command dbsize { "dbsize" };
@@ -96,10 +85,7 @@ TEST_F(CommandTests, Keys) {
 }
 
 TEST_F(CommandTests, Benchmark) {
-    Command non_admin { "benchmark 10", false };
-    EXPECT_EQ(non_admin.parse_cmd(), "DENIED\n");
-
-    Command benchmark { "benchmark 10", true };
+    Command benchmark { "benchmark 10" };
     std::string run_time = benchmark.parse_cmd();
 
     EXPECT_TRUE(run_time == "0 ms\n" || "1 ms\n");
@@ -609,10 +595,8 @@ TEST_F(CommandTests, flushall) {
     Command list { "rpush c 1 2 3 4" };
     EXPECT_EQ(list.parse_cmd(), "4\n");
 
-    Command flushall_nonadmin { "flushall", false };
-    EXPECT_EQ(flushall_nonadmin.parse_cmd(), "DENIED\n");
 
-    Command flushall { "flushall", true };
+    Command flushall { "flushall" };
     EXPECT_EQ(flushall.parse_cmd(), "Cache cleared\n");
 
     Command dbsize { "dbsize" };
@@ -627,6 +611,6 @@ TEST_F(CommandTests, flushall) {
     Command get_c { "get c" };
     EXPECT_EQ(get_c.parse_cmd(), "(NIL)\n");
 
-    Command keys { "keys ", true };
+    Command keys { "keys" };
     EXPECT_EQ(keys.parse_cmd(), "[]\n");
 }

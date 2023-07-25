@@ -4,7 +4,7 @@
 #include "unix_times.h"
 #include "entries/list_entry.h"
 
-Command::Command(const std::string& str, bool admin): admin(admin) {
+Command::Command(const std::string& str) {
     if (monitoring) {
         std::cerr << str << std::endl; 
     }
@@ -65,30 +65,17 @@ std::string Command::ping() {
 }
 
 std::string Command::monitor() {
-    if (!admin) {
-        return "DENIED\n";
-    }
-
     monitoring = !monitoring;
-
     return monitoring ? "ACTIVE\n" : "INACTIVE\n";
 }
 
 std::string Command::shutdown() {
-    if (!admin) {
-        return "DENIED\n";
-    }
-
     stop = true;
     return "Stopping server...\n";
 }
 
 
 std::string Command::keys() {
-    if (!admin) {
-        return "DENIED\n";
-    }
-    
     std::vector<std::string> keys = cache.key_set(true);
 
     if (keys.size() == 0) {
@@ -99,10 +86,6 @@ std::string Command::keys() {
 }
 
 std::string Command::benchmark() {
-    if (!admin) {
-        return "DENIED\n";
-    }
-
     long num = 0;
     try {
         if (args.size() < 2) {
@@ -134,9 +117,6 @@ std::string Command::benchmark() {
 
 
 std::string Command::flushall() {
-    if (!admin) {
-        return "DENIED\n";
-    }
     cache.clear();
     return "Cache cleared\n";
 }

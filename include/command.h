@@ -12,7 +12,6 @@
 class Command {
 private:
     std::vector<std::string> args;
-    bool admin;
 
     std::string echo();
     std::string ping();
@@ -72,7 +71,7 @@ private:
     };
     BaseEntry *str_to_base_entry(std::string str);
 public:
-    Command(const std::string& str, bool admin = false);
+    Command(const std::string& str);
     std::string parse_cmd();
 
 };
