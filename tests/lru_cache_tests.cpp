@@ -5,6 +5,17 @@
 #include "linked_list.h"
 #include "entries/list_entry.h"
 
+TEST(LRUCacheTests, Clear) {
+    LRUCache cache { };
+
+    cache.add("key1", new StringEntry("Value 1"));
+    cache.add("key2", new StringEntry("Value 2"));
+    cache.add("key3", new StringEntry("Value 3"));
+    
+    cache.clear();
+    EXPECT_EQ(cache.size(), 0);
+}
+
 TEST(LRUCacheTests, AddAndRemove) {
     LRUCache cache { };
 

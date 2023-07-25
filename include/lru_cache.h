@@ -24,6 +24,7 @@ private:
 
 public:
     LRUCache(long initial_size = DEFAULT_INITIAL_SIZE, long max_map_size = DEFAULT_MAX_SIZE);
+    ~LRUCache() { clear(); }
     
     long max_size;
     long size() { 
@@ -45,6 +46,8 @@ public:
     }
 
     bool set_expire(const std::string& key, std::time_t time);
+
+    void clear();
 };
 
 #endif

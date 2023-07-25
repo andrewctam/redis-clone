@@ -538,3 +538,52 @@ TEST_F(CommandTests, SetList) {
     Command lpop { "lpop a" };
     EXPECT_EQ(lpop.parse_cmd(), "NOT A LIST\n");
 }
+
+TEST_F(CommandTests, Types) {
+    Command str { "set a hello" };
+    EXPECT_EQ(str.parse_cmd(), "SUCCESS\n");
+    Command str_type { "type a" };
+    EXPECT_EQ(str_type.parse_cmd(), "string\n");
+    
+    Command integer { "set b 1" };
+    EXPECT_EQ(integer.parse_cmd(), "SUCCESS\n");
+    Command integer_type { "type b" };
+    EXPECT_EQ(integer_type.parse_cmd(), "int\n");
+
+    Command list { "rpush c 1 2 3 4" };
+    EXPECT_EQ(list.parse_cmd(), "4\n");
+    Command list_type { "type c" };
+    EXPECT_EQ(list_type.parse_cmd(), "list\n");
+}
+
+TEST_F(CommandTests, flushall) {
+    Command str { "set a hello" };
+    EXPECT_EQ(str.parse_cmd(), "SUCCESS\n");
+        
+    Command integer { "set b 1" };
+    EXPECT_EQ(integer.parse_cmd(), "SUCCESS\n");
+
+    Command list { "rpush c 1 2 3 4" };
+    EXPECT_EQ(list.parse_cmd(), "4\n");
+
+    Command flushall_nonadmin { "flushall", false };
+    EXPECT_EQ(flushall_nonadmin.parse_cmd(), "DENIED\n");
+
+    Command flushall { "flushall", true };
+    EXPECT_EQ(flushall.parse_cmd(), "Cache cleared\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "0\n");
+
+    Command get_a { "get a" };
+    EXPECT_EQ(get_a.parse_cmd(), "(NIL)\n");
+
+    Command get_b { "get b" };
+    EXPECT_EQ(get_b.parse_cmd(), "(NIL)\n");
+
+    Command get_c { "get c" };
+    EXPECT_EQ(get_c.parse_cmd(), "(NIL)\n");
+
+    Command keys { "keys ", true };
+    EXPECT_EQ(keys.parse_cmd(), "[]\n");
+}

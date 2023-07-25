@@ -19,11 +19,13 @@ private:
     std::string shutdown();
     std::string keys();
     std::string benchmark();
+    std::string flushall();
     std::string get();
     std::string set();
     std::string del();
     std::string exists();
     std::string dbsize();
+    std::string type();
     std::string expire();
     std::string expireat();
     std::string persist();
@@ -43,11 +45,13 @@ private:
         {"shutdown", std::bind(&Command::shutdown, this)},
         {"keys", std::bind(&Command::keys, this)},
         {"benchmark", std::bind(&Command::benchmark, this)},
+        {"flushall", std::bind(&Command::flushall, this)},
         {"get", std::bind(&Command::get, this)},
         {"set", std::bind(&Command::set, this)},
         {"del", std::bind(&Command::del, this)},
         {"exists", std::bind(&Command::exists, this)},
         {"dbsize", std::bind(&Command::dbsize, this)},
+        {"type", std::bind(&Command::type, this)},
         {"expire", std::bind(&Command::expire, this)},
         {"expireat", std::bind(&Command::expireat, this)},
         {"persist", std::bind(&Command::persist, this)},

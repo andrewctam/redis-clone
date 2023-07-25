@@ -128,6 +128,15 @@ std::string Command::benchmark() {
     return std::to_string(time_taken) + " ms\n";
 }
 
+
+std::string Command::flushall() {
+    if (!admin) {
+        return "DENIED\n";
+    }
+    cache.clear();
+    return "Cache cleared\n";
+}
+
 std::string Command::get() {
     if (args.size() < 2) {
         return "(NIL)\n";
@@ -177,6 +186,23 @@ std::string Command::dbsize() {
     return std::to_string(cache.size()) + "\n";
 }
 
+std::string Command::type() {    
+    if (args.size() < 2) {
+        return "FAILURE\n";
+    }
+
+    BaseEntry *entry = cache.get(args[1]);
+    if (!entry) {
+        return "(NIL)\n";
+    }
+
+    switch (entry->get_type()) {
+        case EntryType::str: return "string\n";
+        case EntryType::integer: return "int\n";
+        case EntryType::list: return "list\n";
+        default: return "?\n";
+    }
+}
 
 std::string Command::expire() {
     seconds::rep time = time_secs();

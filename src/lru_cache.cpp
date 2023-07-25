@@ -105,3 +105,7 @@ bool LRUCache::set_expire(const std::string& key, std::time_t time) {
     return false;
 }
 
+void LRUCache::clear() {
+    entries.clear();
+    keyMap.clear();
+}

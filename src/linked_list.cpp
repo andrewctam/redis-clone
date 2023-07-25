@@ -232,7 +232,7 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
     }
 }
 
-LinkedList::~LinkedList() {
+void LinkedList::clear() {
     Node *cur = head;
 
     while (cur) {
@@ -241,4 +241,8 @@ LinkedList::~LinkedList() {
         delete cur;
         cur = next;
     }
+
+    size = 0;
+    head = nullptr;
+    tail = nullptr;
 }

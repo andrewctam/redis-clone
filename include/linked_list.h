@@ -16,7 +16,7 @@ public:
     BaseEntry *value;
 
     Node(BaseEntry *value): value(value) {}
-    ~Node() {}
+    ~Node() { }
 };
 
 class LinkedList {
@@ -27,9 +27,11 @@ private:
 
 public:
     int get_size();
+    void clear();
 
     LinkedList() {}
-    ~LinkedList();
+    ~LinkedList() { clear(); };
+
 
     Node *get_node(int i);
     BaseEntry *get(int i);

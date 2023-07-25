@@ -21,6 +21,8 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
     - Returns all keys.
 - `benchmark num`
     - Performs num commands and returns the time taken in ms.
+- `flushall`
+    - Deletes all keys.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or "(NIL)" if no value is found.
@@ -43,6 +45,8 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
 - `dbsize`
     - Returns the number of keys currently stored in the cache
     - Expired keys are lazy deleted and may be falsely reflected in the count.
+- `type key`
+    - Returns the type of the key (string, int, or list) or (NIL) if not found.
 ## Ints
 Setting a key to an integer will store it as an int, such as `set num 123`. The following commands can be used on ints, and will return "NOT AN INT" if used on other value types.
 - `incr key`
