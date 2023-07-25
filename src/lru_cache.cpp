@@ -75,18 +75,26 @@ BaseEntry *LRUCache::get(const std::string& key) {
     }
 }
 
-bool LRUCache::remove(const std::string& key) {
+BaseEntry *LRUCache::remove(const std::string& key) {
     auto it = keyMap.find(key);
 
     if (it == keyMap.end()) {
-        return false;
+        return nullptr;
     }
     
     Node *node = it->second;
     keyMap.erase(it);
 
-    delete entries.remove_node(node);
-    return true;
+    BaseEntry *entry = entries.remove_node(node);
+    if (entry->get_type() == EntryType::cache) {
+        CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
+        BaseEntry *value = cache_entry->cached;
+
+        delete cache_entry;
+        return value;
+    }
+
+    return nullptr;
 }
 
 

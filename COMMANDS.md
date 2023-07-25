@@ -9,10 +9,11 @@
 ## Misc
 - `echo [args ...]` 
     - Returns the args you send.
+- `ping`
+    - Returns PONG.
 
 ## Server
 These commands can only be exectued from stdin, otherwise they will return "DENIED".
-
 - `monitor`    
     - Toggles live montioring of commands (sent to stderr). Returns "ACTIVE" or "INACTIVE".
 - `shutdown`
@@ -23,12 +24,16 @@ These commands can only be exectued from stdin, otherwise they will return "DENI
     - Performs num commands and returns the time taken in ms.
 - `flushall`
     - Deletes all keys.
+
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or "(NIL)" if no value is found.
 - `set key value` 
     - Sets key to value. 
     - Returns "SUCCESS" or "FAILURE" depending on if the operation was successful.
+- `rename key newkey`
+    - Renames a key to newkey.
+    - Returns "SUCCESS", or "FAILURE" if key is not found. 
 - `del key [keys ...]` 
     - Deletes the entries at the specified keys. Returns the number of keys that were removed.
 - `exists key [keys ...]`

@@ -15,6 +15,7 @@ private:
     bool admin;
 
     std::string echo();
+    std::string ping();
     std::string monitor();
     std::string shutdown();
     std::string keys();
@@ -22,6 +23,7 @@ private:
     std::string flushall();
     std::string get();
     std::string set();
+    std::string rename();
     std::string del();
     std::string exists();
     std::string dbsize();
@@ -41,6 +43,7 @@ private:
         std::function<const std::string()>
     > cmdMap = {
         {"echo", std::bind(&Command::echo, this)},
+        {"ping", std::bind(&Command::ping, this)},
         {"monitor", std::bind(&Command::monitor, this)},
         {"shutdown", std::bind(&Command::shutdown, this)},
         {"keys", std::bind(&Command::keys, this)},
@@ -48,6 +51,7 @@ private:
         {"flushall", std::bind(&Command::flushall, this)},
         {"get", std::bind(&Command::get, this)},
         {"set", std::bind(&Command::set, this)},
+        {"rename", std::bind(&Command::rename, this)},
         {"del", std::bind(&Command::del, this)},
         {"exists", std::bind(&Command::exists, this)},
         {"dbsize", std::bind(&Command::dbsize, this)},

@@ -17,9 +17,7 @@ public:
     std::string to_string() { return key; }
 
     CacheEntry(std::string key, BaseEntry *cached): key(key), cached(cached) {}
-    ~CacheEntry() {
-        delete cached;
-    }
+    ~CacheEntry() { }
 };
 
 #endif

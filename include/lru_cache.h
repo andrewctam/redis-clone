@@ -32,7 +32,7 @@ public:
     }
 
     void add(const std::string& key, BaseEntry *value);
-    bool remove(const std::string& key);
+    BaseEntry *remove(const std::string& key);
 
     BaseEntry *get(const std::string& key);
     CacheEntry *get_cache_entry(const std::string& key);

@@ -36,6 +36,12 @@ TEST_F(CommandTests, Echo) {
     EXPECT_EQ(cmd.parse_cmd(), "[echo 1 23 45 6 7 8 9]\n");
 }
 
+
+TEST_F(CommandTests, ping) {
+    Command cmd { "ping" };
+    EXPECT_EQ(cmd.parse_cmd(), "PONG\n");
+}
+
 TEST_F(CommandTests, Monitor) {
     Command cmd_non_admin { "monitor", false };
     EXPECT_EQ(cmd_non_admin.parse_cmd(), "DENIED\n");
@@ -125,6 +131,43 @@ TEST_F(CommandTests, GetSet) {
     EXPECT_EQ(dbsize.parse_cmd(), "2\n");
 }
 
+
+TEST_F(CommandTests, Rename) {
+    Command set_a { "set a 1" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+    Command rename { "rename a b" };
+    EXPECT_EQ(rename.parse_cmd(), "SUCCESS\n");
+
+    Command get_a { "get a" };
+    EXPECT_EQ(get_a.parse_cmd(), "(NIL)\n");
+
+    Command get_b { "get b" };
+    EXPECT_EQ(get_b.parse_cmd(), "1\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "1\n");
+}
+
+TEST_F(CommandTests, RenameOverwrite) {
+    Command set_a { "set a 1" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
+
+    Command set_b { "set b 2" };
+    EXPECT_EQ(set_b.parse_cmd(), "SUCCESS\n");
+
+    Command rename { "rename a b" };
+    EXPECT_EQ(rename.parse_cmd(), "SUCCESS\n");
+
+    Command get_a { "get a" };
+    EXPECT_EQ(get_a.parse_cmd(), "(NIL)\n");
+
+    Command get_b { "get b" };
+    EXPECT_EQ(get_b.parse_cmd(), "1\n");
+
+    Command dbsize { "dbsize" };
+    EXPECT_EQ(dbsize.parse_cmd(), "1\n");
+}
 
 TEST_F(CommandTests, Del) {
     Command set_a { "set a 1" };

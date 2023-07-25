@@ -60,6 +60,10 @@ std::string Command::echo() {
     return ss.str();
 }
 
+std::string Command::ping() {
+    return "PONG\n";
+}
+
 std::string Command::monitor() {
     if (!admin) {
         return "DENIED\n";
@@ -160,10 +164,27 @@ std::string Command::set() {
     return "SUCCESS\n";
 }
 
+
+std::string Command::rename() {
+    if (args.size() < 3) {
+        return "FAILURE\n";
+    }
+
+    BaseEntry *entry = cache.remove(args[1]);
+    if (!entry) {
+        return "FAILURE\n";
+    }
+
+    cache.add(args[2], entry);
+    return "SUCCESS\n";
+}
+
 std::string Command::del() {
     int count = 0;
     for (int i = 1; i < args.size(); i++) {
-        if (cache.remove(args[i])) {
+        BaseEntry *rem = cache.remove(args[i]);
+        if (rem) {
+            delete rem;
             count++;
         }
     }

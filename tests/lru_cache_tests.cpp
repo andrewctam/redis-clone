@@ -19,8 +19,11 @@ TEST(LRUCacheTests, Clear) {
 TEST(LRUCacheTests, AddAndRemove) {
     LRUCache cache { };
 
-    cache.add("key1", new StringEntry("Value 1"));
-    cache.add("key2", new StringEntry("Value 2"));
+    StringEntry *v1 = new StringEntry("Value 1");
+    StringEntry *v2 = new StringEntry("Value 2");
+
+    cache.add("key1", v1);
+    cache.add("key2", v2);
 
     EXPECT_EQ(
         dynamic_cast<StringEntry*>(cache.get("key1"))->value, 
@@ -29,12 +32,14 @@ TEST(LRUCacheTests, AddAndRemove) {
         dynamic_cast<StringEntry*>(cache.get("key2"))->value, 
         "Value 2");
 
-    EXPECT_EQ(cache.remove("key1"), true);
+    EXPECT_EQ(cache.remove("key1"), v1);
 
     EXPECT_EQ(cache.get("key1"), nullptr);
 
-    EXPECT_EQ(cache.remove("key1"), false);
-    EXPECT_EQ(cache.remove("random key"), false);
+    EXPECT_EQ(cache.remove("key1"), nullptr);
+    EXPECT_EQ(cache.remove("random key"), nullptr);
+
+    EXPECT_EQ(cache.remove("key2"), v2);
 }
 
 
