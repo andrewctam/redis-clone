@@ -14,6 +14,7 @@ endif()
 include_directories(include)
 
 add_subdirectory(src)
+add_subdirectory(client)
 
 if (${TEST})
     message("Building tests")

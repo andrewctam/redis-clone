@@ -7,9 +7,10 @@ set(SRC_FILES
 )
 
 add_library(src_lib ${SRC_FILES})
+find_package(cppzmq)
 
 # Create an executable target with main
 add_executable(server main.cpp)
 
 # Link src files
-target_link_libraries(server src_lib)
+target_link_libraries(server cppzmq src_lib)

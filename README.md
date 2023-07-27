@@ -3,28 +3,32 @@
 This project is a distributed in-memory cache cloning many of the features of Redis.
 
 # Installation
-- **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. You could also open this project on [GitHub's codespaces](https://github.com/codespaces).
-- Clone this repository: `git clone https://github.com/andrewctam/redis-clone.git`
-- Make sure you have cmake and a C++ compiler installed
-- In `./build`, run `cmake ..` to create a makefile, then run `make` to run the makefile
-    - run `cmake -DTest=ON ..` to also build the tests
-    
-### Running the server
-- In `./build`, execute `./src/server` to start the server.
+- **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. Alternatively, you could also open this project on [GitHub codespaces](https://github.com/codespaces).
+- Clone this repository: `https://github.com/andrewctam/redis-clone.git`
+- Install [cmake](https://cmake.org/install/).
+- Install [cppzmq](https://github.com/zeromq/cppzmq) .
+- In `./build`, run `cmake ..` to create a makefile (run `cmake -DTest=ON ..` to also build the tests). The initial cmake may take a while in order to fetch gRPC and GoogleTest
+- Finally, in `/.build` run `make` to run the makefile
 
-### Running the tests cases
-- In `./build`, execute `./tests/tests` to run all of the test cases
+```
+git clone https://github.com/andrewctam/redis-clone.git
 
+cd redis-clone/build
 
+cmake ..
+
+make
+```
 # Usage
-- Once the server has started, you can send commands to stdin (probably the terminal used to launch the server), or connect using a client.
-    - Using telnet: run `telnet localhost 9999` to connect to the server. Then, you can start sending commands to the server similar to.
-    
-
+- In `./build`:
+    - execute `./src/server` to start the server.
+    - execute `./client/client` to start a client.
+- Once the server has started, you can send commands from the client.
+- To run the test cases, execute `./tests/tests` (must have been built with -DTEST=ON).
 ## Commands
 - For a list of commands, see [COMMANDS.md](./COMMANDS.md)
 - Commands are case-insensitive, but keys/values are case-sensitive
-    - `GET name Andrew` is the same as `get name Andrew` but is not the same as `GET NAME Andrew`
+    - `GET Andrew` is the same as `get Andrew` but is not the same as `GET ANDREW`
 - Optional parameters are indicated with square brackets and ellipses,
     - For example, in `exists key [keys ...]`:
         - `exists name` is valid
