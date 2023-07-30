@@ -13,14 +13,22 @@ public:
     int hash;
 
     ServerNode(std::string pid, std::string endpoint);
-    ServerNode(std::string str);
-
     ~ServerNode();
 };
 
 struct Compare {
-    bool operator()(ServerNode* const&node1, ServerNode* const&node2) const {
+    using is_transparent = void;
+
+    bool operator()(ServerNode* const &node1, ServerNode* const &node2) const {
         return node1->hash < node2->hash;
+    }
+
+    bool operator()(ServerNode* const &node, const std::string &str) const {
+        return node->hash < std::hash<std::string>()(str) % 360;
+    }
+
+    bool operator()(const std::string &str, ServerNode* const&node) const {
+        return std::hash<std::string>()(str) % 360 < node->hash;
     }
 };
 

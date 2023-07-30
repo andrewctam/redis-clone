@@ -1,8 +1,6 @@
-#include <string>
-#include <chrono>
-#include <thread>
 #include <iostream>
 #include <zmq.hpp>
+#include <errno.h>
 
 #include "command.h"
 #include "lru_cache.h"
@@ -19,22 +17,39 @@ using namespace std::chrono_literals;
 
 
 void start_leader() {
-    ConsistentHashing ring {};
-
+    // internal context for talking to worker nodes
     zmq::context_t internal_context{1};
     zmq::socket_t internal_socket{internal_context, zmq::socket_type::rep};
     internal_socket.bind("tcp://*:" + std::to_string(CLIENT_PORT + 10000));
-    internal_socket.set(zmq::sockopt::rcvtimeo, 1000);
+    internal_socket.set(zmq::sockopt::rcvtimeo, 200);
+
+    // dealer context for talking to all worker nodes at once
+    zmq::context_t dealer_context(1);
+    zmq::socket_t dealer_socket(dealer_context, zmq::socket_type::dealer);
+    dealer_socket.set(zmq::sockopt::rcvtimeo, 200);
+
+    // ring for consistent hashing and storing worker nodes
+    std::string leader_pid = std::to_string(getpid());
+    ConsistentHashing ring {};
+    ring.add(leader_pid, internal_socket.get(zmq::sockopt::last_endpoint));
+
+    // recieve worker node discovery connections, stop after 200ms of no discovery
     while (true) {
          try {
             zmq::message_t reply{};
             zmq::recv_result_t res = internal_socket.recv(reply, zmq::recv_flags::none);
 
+            
             std::string payload = reply.to_string();
+
+            // add to ring
             int sep = payload.find(" ");
             std::string pid = payload.substr(0, sep);
             std::string endpoint = payload.substr(sep + 1); 
             ring.add(pid, endpoint);
+
+            // add to dealer
+            dealer_socket.connect(endpoint);
 
             std::cout << "Connected to worker node with pid: " 
             << pid << " and endpoint: " << endpoint
@@ -42,21 +57,22 @@ void start_leader() {
 
             internal_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
         } catch (...) {
-            if (ring.size() == 0) {
-                std::cout << "Failed to find any child nodes" << std::endl;
-                return;
+            if (ring.size() == 1) { //only master node
+                std::cout << "Failed to find any child nodes, will only use master node." << std::endl;
             }
 
             break;
         }
     }
-        
 
+    
+        
+    // create socket for client requests
     zmq::context_t client_context{1};
     zmq::socket_t client_socket{client_context, zmq::socket_type::rep};
     client_socket.bind("tcp://*:" + std::to_string(CLIENT_PORT));
 
-    std::cout << "Started server with leader node pid:" << getpid() << " on: " 
+    std::cout << "Started server with leader node with pid " << leader_pid << " on " 
         << client_socket.get(zmq::sockopt::last_endpoint)
         << std::endl;
 
@@ -65,24 +81,93 @@ void start_leader() {
         zmq::message_t request;
         zmq::recv_result_t res = client_socket.recv(request, zmq::recv_flags::none);
 
+        std::string reply = "";
         std::string msg = request.to_string();
-        std::string key = cmd::extract_key(msg);
 
-        ServerNode *worker = nullptr;
-        if (key != "") {
-            worker = ring.get(key);
-            std::cout << worker->pid << std::endl; 
+        if (monitoring) {
+            std::cerr << msg << std::endl; 
         }
 
-        if (worker) {
-            worker->socket->send(zmq::buffer(msg), zmq::send_flags::none);
+        // does this command require asking all the nodes?
+        std::string name = cmd::extract_name(msg);
+        bool shouldAddAll = cmd::addAll(name);
+        bool shouldConcatAll = cmd::concatAll(name);
+        bool shouldAskAll = cmd::askAll(name);
 
-            zmq::recv_result_t res = worker->socket->recv(request, zmq::recv_flags::none);
+        if (shouldAddAll || shouldConcatAll || shouldAskAll) {
+            for (int i = 0; i < ring.size(); i++) {
+                dealer_socket.send(zmq::message_t(), zmq::send_flags::sndmore);
+                dealer_socket.send(zmq::buffer(msg), zmq::send_flags::none);
+            }
+            int sum = 0;
+            std::stringstream ss;
+
+            // process onmaster node
+            Command cmd { request.to_string() };
+            if (shouldAddAll) {
+                try {
+                    sum += stoi(cmd.parse_cmd());
+                } catch (...) {
+                    std::cout << "Error with this cmd: " << msg << std::endl;
+                }
+            } else if (shouldConcatAll) {
+                ss << cmd.parse_cmd() << " ";
+            }
+
+            // ask for worker node responses
+            // stop after all responses (or timeout)
+            int count = 1;
+            while (count < ring.size()) {
+                try {
+                    zmq::message_t dealer_request;
+                    // empty envelope
+                    zmq::recv_result_t res = dealer_socket.recv(dealer_request, zmq::recv_flags::none);
+                    // actual result
+                    res = dealer_socket.recv(dealer_request, zmq::recv_flags::none);
+
+                    count++;
+                    if (shouldAddAll) {
+                        try {
+                            sum += stoi(dealer_request.to_string());
+                        } catch (...) {
+                            std::cout << "Error with this cmd: " << msg << std::endl;
+                        }
+                    } else if (shouldConcatAll) {
+                        ss << dealer_request.to_string() << " ";
+                    }
+                } catch (...) {
+                    std::cout << "Recv " << count << " out of " << ring.size() << std::endl;
+                }
+            }
+
+            if (shouldAddAll) {
+                reply = std::to_string(sum);
+            } else if (shouldConcatAll) {
+                reply = ss.str();
+            }
+        } else {
+            ServerNode *worker = nullptr;
+            std::string key = cmd::extract_key(msg);
+            if (key != "") {
+                worker = ring.get(key);
+            }
+
+            if (worker && worker->pid != leader_pid) {
+                //request goes to another worker
+                worker->socket->send(zmq::buffer(msg), zmq::send_flags::none);
+                zmq::recv_result_t res = worker->socket->recv(request, zmq::recv_flags::none);
+                reply = request.to_string();
+            } else { 
+                //request can be fuffiled by leader
+                Command cmd { request.to_string() };
+                reply = cmd.parse_cmd();
+            }
         }
+        
 
-        client_socket.send(zmq::buffer(request.to_string()), zmq::send_flags::none);
-      
+        client_socket.send(zmq::buffer(reply), zmq::send_flags::none);
         if (stop) {
+            std::cout << "Stopping leader node pid " << leader_pid << std::endl;
             return;
         }
     }
@@ -125,13 +210,13 @@ void start_worker() {
         zmq::message_t request;
         zmq::recv_result_t res = socket.recv(request, zmq::recv_flags::none);
 
-        std::string msg = request.to_string();
-        Command cmd { msg };
+        Command cmd { request.to_string() };
+        std::string res2 = cmd.parse_cmd();
 
-
-        socket.send(zmq::buffer(cmd.parse_cmd()), zmq::send_flags::none);
+        socket.send(zmq::buffer(res2), zmq::send_flags::none);
       
         if (stop) {
+            std::cout << "Stopping worker node pid " << getpid() << std::endl;
             return;
         }
     }

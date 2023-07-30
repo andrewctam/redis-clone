@@ -22,9 +22,12 @@ enable_testing()
 # Create test executable
 add_executable(tests ${TEST_SOURCES})
 
-# Link to src files and gtest
+find_package(cppzmq)
+
+# Link to src files, cppzmq, and gtest
 target_link_libraries(
   tests
+  cppzmq
   src_lib 
   GTest::gtest_main
 )

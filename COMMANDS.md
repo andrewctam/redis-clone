@@ -1,6 +1,7 @@
 # Commands
 #### Table of Contents
 - [Misc](#misc)
+- [Nodes](#nodes)
 - [Basic Cache](#basic-cache)
 - [Ints](#ints)
 - [Lists](#lists)
@@ -12,11 +13,17 @@
     - Returns PONG.
 - `monitor`    
     - Toggles live montioring of commands (sent to stderr). Returns ACTIVE or INACTIVE.
-- `shutdown`
-    - Stops the server.
 - `benchmark num`
     - Performs num commands and returns the time taken in ms.
-
+## Nodes
+- `nodes`
+    - List all nodes with their pid and leader status.
+- `create`
+    - Creates a new node.
+- `kill pid`
+    - Kills the node with the specified pid.
+- `shutdown`
+    - Shutsdown the server and stops all nodes.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or (NIL) if no value is found.

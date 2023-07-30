@@ -1,18 +1,19 @@
 #ifndef COMMAND_H
 #define COMMAND_H
-#include <iterator>
-#include <vector>
-#include <sstream>
+
 #include <string>
+#include <vector>
 #include <map>
-#include <unordered_set>
-#include <functional>
 
 #include "entries/base_entry.h"
 
 namespace cmd {
     std::string extract_name(const std::string& str);
     std::string extract_key(const std::string& str);
+
+    bool addAll(const std::string& str);
+    bool concatAll(const std::string& str);
+    bool askAll(const std::string& str);
 }
 
 class Command {
@@ -76,23 +77,6 @@ private:
         {"llen", std::bind(&Command::llen, this)},
     };
 
-    // commands that should be sent to all nodes and...
-    // return values added together
-    std::unordered_set<std::string> addAll = {
-        "dbsize",
-        "exists"
-    };
-
-    // returned strings concatenated together
-    std::unordered_set<std::string> concatAll = {
-        "keys"
-    };
-
-    // nothing
-    std::unordered_set<std::string> tellAll = {
-        "flushall",
-        "shutdown"
-    };
 
 public:
     Command(const std::string& str);

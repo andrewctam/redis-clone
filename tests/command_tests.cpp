@@ -60,7 +60,7 @@ TEST_F(CommandTests, Shutdown) {
 
 TEST_F(CommandTests, Keys) {
     Command keys_none { "keys" };
-    EXPECT_EQ(keys_none.parse_cmd(), "[]\n");
+    EXPECT_EQ(keys_none.parse_cmd(), "(NIL)\n");
 
     Command set_a { "set a 1" };
     EXPECT_EQ(set_a.parse_cmd(), "SUCCESS\n");
@@ -72,13 +72,13 @@ TEST_F(CommandTests, Keys) {
     EXPECT_EQ(set_C.parse_cmd(), "SUCCESS\n");
 
     Command keys_1 { "keys" };
-    EXPECT_EQ(keys_1.parse_cmd(), "[a b c]\n");
+    EXPECT_EQ(keys_1.parse_cmd(), "a b c\n");
 
     Command del_b { "del b" };
     EXPECT_EQ(del_b.parse_cmd(), "1\n");
 
     Command keys_2 { "keys" };
-    EXPECT_EQ(keys_2.parse_cmd(), "[a c]\n");
+    EXPECT_EQ(keys_2.parse_cmd(), "a c\n");
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "2\n");
@@ -612,5 +612,5 @@ TEST_F(CommandTests, flushall) {
     EXPECT_EQ(get_c.parse_cmd(), "(NIL)\n");
 
     Command keys { "keys" };
-    EXPECT_EQ(keys.parse_cmd(), "[]\n");
+    EXPECT_EQ(keys.parse_cmd(), "(NIL)\n");
 }

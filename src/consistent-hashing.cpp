@@ -8,19 +8,11 @@ ServerNode::ServerNode(std::string pid, std::string endpoint) :
 
     socket->connect(endpoint);
 }
-ServerNode::ServerNode(std::string str) :
-    pid(""), 
-    context(nullptr),
-    socket(nullptr),
-    hash(std::hash<std::string>()(str) % 360) { }
-
 
 
 ServerNode::~ServerNode() {
-    if (socket)
-        delete socket;
-    if (context)
-        delete context;
+    delete socket;
+    delete context;
 }
 
 
@@ -31,12 +23,10 @@ void ConsistentHashing::add(std::string pid, std::string endpoint) {
 }
 
 ServerNode *ConsistentHashing::get(const std::string &str) {
-    ServerNode *temp = new ServerNode(str);
-    auto it = connected.lower_bound(temp);
+    auto it = connected.lower_bound(str);
     if (it == connected.end()) {
         it = connected.begin();
     }
 
-    delete temp;
     return *it;
 }

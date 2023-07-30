@@ -1,3 +1,8 @@
+#include <iterator>
+#include <sstream>
+#include <unordered_set>
+#include <functional>
+
 #include "command.h"
 #include "lru_cache.h"
 #include "server.h"
@@ -14,7 +19,6 @@ namespace cmd {
 
         return "";
     }
-
     std::string extract_key(const std::string& str) {
         std::istringstream iss(str);
         std::istream_iterator<std::string> it(iss);
@@ -29,13 +33,31 @@ namespace cmd {
 
         return key;
     }
+    bool addAll(const std::string& str) {
+        std::unordered_set<std::string> cmds = {
+            "dbsize",
+            "exists"
+        };
+        return cmds.find(str) != cmds.end();
+    }
+
+    bool concatAll(const std::string& str) {
+         std::unordered_set<std::string> cmds = {
+            "keys"
+        };
+        return cmds.find(str) != cmds.end();
+    }
+
+    bool askAll(const std::string& str) {
+        std::unordered_set<std::string> cmds = {
+            "flushall",
+            "shutdown"
+        };
+        return cmds.find(str) != cmds.end();
+    }
 }
 
 Command::Command(const std::string& str) {
-    if (monitoring) {
-        std::cerr << str << std::endl; 
-    }
-
     std::stringstream ss (str);
     std::istream_iterator<std::string> begin (ss), end;
     args = std::vector<std::string> (begin, end);
@@ -105,12 +127,11 @@ std::string Command::shutdown() {
 
 
 std::string Command::keys() {
-    std::vector<std::string> keys = cache.key_set(true);
-
-    if (keys.size() == 0) {
-        return "ERROR\n";
+    if (cache.size() == 0) {
+        return "(NIL)\n";
     }
 
+    std::vector<std::string> keys = cache.key_set(true);
     return keys[0] + "\n";
 }
 

@@ -1,15 +1,12 @@
 #ifndef LRU_CACHE_H
 #define LRU_CACHE_H
 
-#include <iostream>
 #include <vector>
-#include <list>
 #include <unordered_map>
 #include <string>
 
 #include "entries/base_entry.h"
 #include "entries/cache_entry.h"
-
 #include "linked_list.h"
 
 constexpr long DEFAULT_INITIAL_SIZE = 100;

@@ -1,6 +1,7 @@
+#include <sstream>
+
 #include "linked_list.h"
 #include "entries/cache_entry.h"
-#include <sstream>
 
 int LinkedList::get_size() {
     return size;
@@ -190,9 +191,6 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
             cur = cur->next;
         }
     }
-    if (single_str) {
-        ss << "[";
-    }
     bool first_element = true;
     while (cur && i <= stop) {
         BaseEntry *value = cur->value;
@@ -225,7 +223,6 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
     }
 
     if (single_str) {
-        ss << "]";
         return { ss.str() };
     } else {
         return vals;
