@@ -195,18 +195,18 @@ std::vector<std::string> LinkedList::values(int start, int stop, bool reverse, b
     while (cur && i <= stop) {
         BaseEntry *value = cur->value;
 
-        if (single_str && !first_element) {
-            ss << " ";
-        } else {
-            first_element = false;
-        }
-
         //for cache entries, filter out expired
         if ((value->get_type() != EntryType::cache) || 
             !(dynamic_cast<CacheEntry *>(value)->expired())) {
                 
             std::string str = value->to_string();
             if (single_str) {
+                if (!first_element) {
+                    ss << " ";
+                } else {
+                    first_element = false;
+                }
+                
                 ss << str;
             } else {
                 vals.emplace_back(str);

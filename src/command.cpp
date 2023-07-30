@@ -80,7 +80,7 @@ BaseEntry *Command::str_to_base_entry(std::string str) {
 
 std::string Command::parse_cmd() {
     if (args.size() == 0) {
-        return "No Command Entered\n";
+        return "No Command Entered";
     }
 
     std::string cmd = args[0];
@@ -90,7 +90,7 @@ std::string Command::parse_cmd() {
     if (it != cmdMap.end()) {
         return it->second();
     } else {
-        return "Invalid Command\n";
+        return "Invalid Command";
     }
 }
 
@@ -98,7 +98,6 @@ std::string Command::parse_cmd() {
 
 std::string Command::echo() {
     std::stringstream ss;
-    ss << "[";
     for (size_t i = 0; i < args.size(); ++i) {
         if (i > 0) {
             ss << " ";
@@ -106,33 +105,28 @@ std::string Command::echo() {
 
         ss << args[i];
     }
-    ss << "]\n";
 
     return ss.str();
 }
 
 std::string Command::ping() {
-    return "PONG\n";
+    return "PONG";
 }
 
 std::string Command::monitor() {
     monitoring = !monitoring;
-    return monitoring ? "ACTIVE\n" : "INACTIVE\n";
+    return monitoring ? "ACTIVE" : "INACTIVE";
 }
 
 std::string Command::shutdown() {
     stop = true;
-    return "Stopping server...\n";
+    return "Stopping server...";
 }
 
 
 std::string Command::keys() {
-    if (cache.size() == 0) {
-        return "(NIL)\n";
-    }
-
     std::vector<std::string> keys = cache.key_set(true);
-    return keys[0] + "\n";
+    return keys[0];
 }
 
 std::string Command::benchmark() {
@@ -144,7 +138,7 @@ std::string Command::benchmark() {
 
         num = stol(args[1]);
     } catch(...) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
     
     std::srand(std::time(nullptr));
@@ -162,51 +156,51 @@ std::string Command::benchmark() {
         }
     }
     milliseconds::rep time_taken = time_ms() - start;
-    return std::to_string(time_taken) + " ms\n";
+    return std::to_string(time_taken) + " ms";
 }
 
 
 std::string Command::flushall() {
     cache.clear();
-    return "Cache cleared\n";
+    return "Cache cleared";
 }
 
 std::string Command::get() {
     if (args.size() < 2) {
-        return "(NIL)\n";
+        return "(NIL)";
     }
 
     BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
-        return "(NIL)\n";
+        return "(NIL)";
     }
 
-    return entry->to_string() + "\n";
+    return entry->to_string() + "";
 }
 
 std::string Command::set() {
     if (args.size() < 3) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     cache.add(args[1], str_to_base_entry(args[2]));
 
-    return "SUCCESS\n";
+    return "SUCCESS";
 }
 
 
 std::string Command::rename() {
     if (args.size() < 3) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     BaseEntry *entry = cache.remove(args[1]);
     if (!entry) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     cache.add(args[2], entry);
-    return "SUCCESS\n";
+    return "SUCCESS";
 }
 
 std::string Command::del() {
@@ -219,7 +213,7 @@ std::string Command::del() {
         }
     }
 
-    return std::to_string(count) + "\n";
+    return std::to_string(count) + "";
 }
 
 std::string Command::exists() {    
@@ -230,28 +224,28 @@ std::string Command::exists() {
         }
     }
 
-    return std::to_string(count) + "\n";
+    return std::to_string(count) + "";
 }
 
 std::string Command::dbsize() {    
-    return std::to_string(cache.size()) + "\n";
+    return std::to_string(cache.size()) + "";
 }
 
 std::string Command::type() {    
     if (args.size() < 2) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
-        return "(NIL)\n";
+        return "(NIL)";
     }
 
     switch (entry->get_type()) {
-        case EntryType::str: return "string\n";
-        case EntryType::integer: return "int\n";
-        case EntryType::list: return "list\n";
-        default: return "?\n";
+        case EntryType::str: return "string";
+        case EntryType::integer: return "int";
+        case EntryType::list: return "list";
+        default: return "?";
     }
 }
 
@@ -266,11 +260,11 @@ std::string Command::expire() {
 
         time += std::stol(args[2]);
     } catch(...) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
     
     bool res = cache.set_expire(args[1], time);
-    return res ? std::to_string(time) + "\n": "FAILURE\n";
+    return res ? std::to_string(time) + "": "FAILURE";
 }
 
 std::string Command::expireat() {
@@ -282,9 +276,9 @@ std::string Command::expireat() {
         uint64_t unix_times = std::stol(args[2]);
 
         bool res = cache.set_expire(args[1], unix_times);
-        return res ? "SUCCESS\n" : "FAILURE\n";
+        return res ? "SUCCESS" : "FAILURE";
     } catch(...) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 }
 
@@ -297,7 +291,7 @@ std::string Command::persist() {
     }
 
     bool res = cache.set_expire(args[1], 0);
-    return res ? "SUCCESS\n": "FAILURE\n";
+    return res ? "SUCCESS": "FAILURE";
 }
 
 
@@ -317,7 +311,7 @@ std::string Command::incrementer() {
         }
 
     } catch (...) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     if (args[0] == "decr" || args[0] == "decrby") {
@@ -327,23 +321,23 @@ std::string Command::incrementer() {
     BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
         cache.add(args[1], new IntEntry(change));
-        return std::to_string(change) + "\n";
+        return std::to_string(change) + "";
     }
 
     if (entry->get_type() != EntryType::integer) {
-        return "NOT AN INT\n";
+        return "NOT AN INT";
     }
 
     IntEntry *val = dynamic_cast<IntEntry *>(entry);
     val->value += change;
 
-    return std::to_string(val->value) + "\n";
+    return std::to_string(val->value) + "";
 }
 
 
 std::string Command::list_push() {
     if (args.size() < 3) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     BaseEntry *entry = cache.get(args[1]);
@@ -354,7 +348,7 @@ std::string Command::list_push() {
         list_entry = new ListEntry();
         cache.add(args[1], list_entry);
     } else if (entry->get_type() != EntryType::list) {
-        return "NOT A LIST\n";
+        return "NOT A LIST";
     } else {
         list_entry = dynamic_cast<ListEntry*>(entry);
     }
@@ -370,13 +364,13 @@ std::string Command::list_push() {
         }
     }
 
-    return std::to_string(list->get_size()) + "\n";
+    return std::to_string(list->get_size()) + "";
 }
 
 
 std::string Command::list_pop() {
     if (args.size() < 2) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
     int num = 1;
     if (args.size() > 2) {
@@ -384,9 +378,9 @@ std::string Command::list_pop() {
             num = stoi(args[2]);
 
             if (num == 0) {
-                return "[]\n";
+                return "";
             } else if (num < 0) {
-                return "ERROR\n";
+                return "ERROR";
             }
         } catch (...) {
             num = 1;
@@ -396,11 +390,11 @@ std::string Command::list_pop() {
     BaseEntry *entry = cache.get(args[1]);
     
     if (!entry) {
-        return "(NIL)\n";
+        return "(NIL)";
     } 
 
     if (entry->get_type() != EntryType::list) {
-        return "NOT A LIST\n";
+        return "NOT A LIST";
     }
 
     ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
@@ -408,7 +402,6 @@ std::string Command::list_pop() {
     bool rpop = args[0] == "rpop";
 
     std::stringstream ss;
-    ss << "[";
 
     num = std::min(num, list->get_size());
     bool first_entry = true;
@@ -432,13 +425,12 @@ std::string Command::list_pop() {
         delete rem;
     }
 
-    ss << "]\n";
     return ss.str();
 }
 
 std::string Command::lrange() {
     if (args.size() < 2) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
     int start = 0;
     int stop = -1;
@@ -447,7 +439,7 @@ std::string Command::lrange() {
             start = stoi(args[2]);
 
             if (start < -1) {
-                return "ERROR\n";
+                return "ERROR";
             }
         } catch (...) {
             start = 0;
@@ -459,7 +451,7 @@ std::string Command::lrange() {
             stop = stoi(args[3]);
 
             if (stop < -1) {
-                return "ERROR\n";
+                return "ERROR";
             }
         } catch (...) {
             stop = -1;
@@ -469,11 +461,11 @@ std::string Command::lrange() {
     BaseEntry *entry = cache.get(args[1]);
     
     if (!entry) {
-        return "(NIL)\n";
+        return "(NIL)";
     } 
 
     if (entry->get_type() != EntryType::list) {
-        return "NOT A LIST\n";
+        return "NOT A LIST";
     }
 
     ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
@@ -483,7 +475,7 @@ std::string Command::lrange() {
     stop = std::min(stop, lim);
 
     if (start > lim) {
-        return "[]\n";
+        return "";
     }
 
     if (start == -1) {
@@ -496,29 +488,29 @@ std::string Command::lrange() {
     std::vector<std::string> str = list->values(start, stop, false, true);
 
     if (str.size() == 0) {
-        return "ERROR\n";
+        return "ERROR";
     }
 
-    return str[0] + "\n";
+    return str[0];
 }
 
 std::string Command::llen() {
     if (args.size() < 2) {
-        return "FAILURE\n";
+        return "FAILURE";
     }
 
     BaseEntry *entry = cache.get(args[1]);
     
     if (!entry) {
-        return "0\n";
+        return "0";
     } 
 
     if (entry->get_type() != EntryType::list) {
-        return "NOT A LIST\n";
+        return "NOT A LIST";
     }
 
     ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
     LinkedList *list = list_entry->list;
 
-    return std::to_string(list->get_size()) + "\n";
+    return std::to_string(list->get_size()) + "";
 }

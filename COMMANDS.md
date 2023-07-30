@@ -23,7 +23,7 @@
 - `kill pid`
     - Kills the node with the specified pid.
 - `shutdown`
-    - Shutsdown the server and stops all nodes.
+    - Shuts down the server and stops all nodes.
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or (NIL) if no value is found.

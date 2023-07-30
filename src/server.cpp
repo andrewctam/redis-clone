@@ -95,7 +95,7 @@ void start_leader() {
         bool shouldAskAll = cmd::askAll(name);
 
         if (shouldAddAll || shouldConcatAll || shouldAskAll) {
-            for (int i = 0; i < ring.size(); i++) {
+            for (int i = 0; i < ring.size() - 1; i++) {
                 dealer_socket.send(zmq::message_t(), zmq::send_flags::sndmore);
                 dealer_socket.send(zmq::buffer(msg), zmq::send_flags::none);
             }
@@ -104,14 +104,19 @@ void start_leader() {
 
             // process onmaster node
             Command cmd { request.to_string() };
+            std::string parsed = cmd.parse_cmd();
+
             if (shouldAddAll) {
                 try {
-                    sum += stoi(cmd.parse_cmd());
+                    sum += stoi(parsed);
                 } catch (...) {
                     std::cout << "Error with this cmd: " << msg << std::endl;
                 }
             } else if (shouldConcatAll) {
-                ss << cmd.parse_cmd() << " ";
+                std::cout << parsed << std::endl;
+                if (parsed.size() > 0) {
+                    ss << parsed << " ";
+                }
             }
 
             // ask for worker node responses

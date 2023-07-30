@@ -12,7 +12,7 @@ public:
     std::string to_string() { 
         std::vector<std::string> str = list->values(0, -1, false, true);
         if (str.size() == 0) {
-            return "[]";
+            return "";
         }
 
         return str[0];

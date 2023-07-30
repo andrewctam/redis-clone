@@ -165,7 +165,7 @@ TEST(LRUCacheTests, LRUTypes) {
     list->add_end(new StringEntry("3"));
 
     cache.add("list", list_entry);
-    EXPECT_EQ(cache.get("list")->to_string(), "[1 2 3]");
+    EXPECT_EQ(cache.get("list")->to_string(), "1 2 3");
 
     cache.add("num", new IntEntry(1));
     EXPECT_EQ(cache.get("num")->to_string(), "1");
