@@ -5,13 +5,20 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <unordered_set>
 #include <functional>
 
 #include "entries/base_entry.h"
 
+namespace cmd {
+    std::string extract_name(const std::string& str);
+    std::string extract_key(const std::string& str);
+}
+
 class Command {
 private:
     std::vector<std::string> args;
+    BaseEntry *str_to_base_entry(std::string str);
 
     std::string echo();
     std::string ping();
@@ -35,7 +42,6 @@ private:
     std::string list_pop();
     std::string lrange();
     std::string llen();
-
 
     std::map<
         std::string, 
@@ -69,11 +75,29 @@ private:
         {"lrange", std::bind(&Command::lrange, this)},
         {"llen", std::bind(&Command::llen, this)},
     };
-    BaseEntry *str_to_base_entry(std::string str);
+
+    // commands that should be sent to all nodes and...
+    // return values added together
+    std::unordered_set<std::string> addAll = {
+        "dbsize",
+        "exists"
+    };
+
+    // returned strings concatenated together
+    std::unordered_set<std::string> concatAll = {
+        "keys"
+    };
+
+    // nothing
+    std::unordered_set<std::string> tellAll = {
+        "flushall",
+        "shutdown"
+    };
+
 public:
     Command(const std::string& str);
     std::string parse_cmd();
-
 };
-    
+
+
 #endif

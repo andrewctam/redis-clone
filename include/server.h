@@ -14,14 +14,14 @@
 
 #include "lru_cache.h"
 
-constexpr int MAX_CLIENTS = 20;
-constexpr int PORT = 9001;
+constexpr int CLIENT_PORT = 9001;
+constexpr int LEADER_PORT = CLIENT_PORT + 10000;
 
 extern bool monitoring;
 extern bool stop;
 
 extern LRUCache cache;
 
-void start_server();
-
+void start_leader();
+void start_worker();
 #endif

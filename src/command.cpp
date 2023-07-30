@@ -4,6 +4,33 @@
 #include "unix_times.h"
 #include "entries/list_entry.h"
 
+namespace cmd {
+    std::string extract_name(const std::string& str) {
+        std::istringstream iss(str);
+        std::istream_iterator<std::string> it(iss);
+        if (it != std::istream_iterator<std::string>() && !(*it).empty()) {
+            return *it;
+        }
+
+        return "";
+    }
+
+    std::string extract_key(const std::string& str) {
+        std::istringstream iss(str);
+        std::istream_iterator<std::string> it(iss);
+        
+        ++it;
+
+        std::string key = "";
+
+        if (it != std::istream_iterator<std::string>() && !(*it).empty()) {
+            key = *it;
+        }
+
+        return key;
+    }
+}
+
 Command::Command(const std::string& str) {
     if (monitoring) {
         std::cerr << str << std::endl; 
@@ -44,6 +71,8 @@ std::string Command::parse_cmd() {
         return "Invalid Command\n";
     }
 }
+
+
 
 std::string Command::echo() {
     std::stringstream ss;
