@@ -1,5 +1,5 @@
-#include "worker.h"
-#include "globals.h"
+#include "worker.hpp"
+#include "globals.hpp"
 
 bool monitoring = false;
 bool stop = false;

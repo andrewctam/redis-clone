@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "linked_list.h"
-#include "entries/base_entry.h"
-#include "entries/cache_entry.h"
-#include "entries/list_entry.h"
+#include "linked_list.hpp"
+#include "entries/base_entry.hpp"
+#include "entries/cache_entry.hpp"
+#include "entries/list_entry.hpp"
 
 TEST(LinkedListTests, Empty) {
     LinkedList list;

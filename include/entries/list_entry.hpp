@@ -1,8 +1,8 @@
 #ifndef LIST_ENTRY_H
 #define LIST_ENTRY_H
 
-#include "base_entry.h"
-#include "linked_list.h"
+#include "base_entry.hpp"
+#include "linked_list.hpp"
 
 class ListEntry: public BaseEntry {
 public:

@@ -1,8 +1,8 @@
 #include <list>
 #include <iostream>
 
-#include "lru_cache.h"
-#include "globals.h"
+#include "lru_cache.hpp"
+#include "globals.hpp"
 
 
 

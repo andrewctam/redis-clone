@@ -1,7 +1,7 @@
 #include <sstream>
 
-#include "linked_list.h"
-#include "entries/cache_entry.h"
+#include "linked_list.hpp"
+#include "entries/cache_entry.hpp"
 
 int LinkedList::get_size() {
     return size;

@@ -3,11 +3,11 @@
 #include <unordered_set>
 #include <functional>
 
-#include "command.h"
-#include "lru_cache.h"
-#include "globals.h"
-#include "unix_times.h"
-#include "entries/list_entry.h"
+#include "command.hpp"
+#include "lru_cache.hpp"
+#include "globals.hpp"
+#include "unix_times.hpp"
+#include "entries/list_entry.hpp"
 
 namespace cmd {
     std::string extract_name(const std::string& str) {

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 
-#include "entries/base_entry.h"
+#include "entries/base_entry.hpp"
 
 class Node {
 public:

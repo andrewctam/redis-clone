@@ -1,4 +1,4 @@
-#include "consistent-hashing.h"
+#include "consistent-hashing.hpp"
 
 ServerNode::ServerNode(std::string pid, std::string endpoint, bool is_leader) :
     pid(pid), 

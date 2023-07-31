@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "command.h"
-#include "globals.h"
-#include "unix_times.h"
+#include "command.hpp"
+#include "globals.hpp"
+#include "unix_times.hpp"
 
 bool monitoring = false;
 bool stop = false;

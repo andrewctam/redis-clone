@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <string>
 
-#include "entries/base_entry.h"
-#include "entries/cache_entry.h"
-#include "linked_list.h"
+#include "entries/base_entry.hpp"
+#include "entries/cache_entry.hpp"
+#include "linked_list.hpp"
 
 constexpr long DEFAULT_INITIAL_SIZE = 100;
 constexpr long DEFAULT_MAX_SIZE = 5000;

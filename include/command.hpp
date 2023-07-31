@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-#include "entries/base_entry.h"
+#include "entries/base_entry.hpp"
 
 namespace cmd {
     std::string extract_name(const std::string& str);

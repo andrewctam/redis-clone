@@ -1,5 +1,5 @@
-#include "leader.h"
-#include "globals.h"
+#include "leader.hpp"
+#include "globals.hpp"
 
 bool monitoring = false;
 bool stop = false;

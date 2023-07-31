@@ -2,12 +2,12 @@
 #include <zmq.hpp>
 #include <errno.h>
 
-#include "command.h"
-#include "lru_cache.h"
-#include "globals.h"
-#include "unix_times.h"
-#include "consistent-hashing.h"
-#include "worker.h"
+#include "command.hpp"
+#include "lru_cache.hpp"
+#include "globals.hpp"
+#include "unix_times.hpp"
+#include "consistent-hashing.hpp"
+#include "worker.hpp"
 
 using namespace std::chrono_literals;
 

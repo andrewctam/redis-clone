@@ -1,7 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "lru_cache.h"
+#include "lru_cache.hpp"
 
 constexpr int CLIENT_PORT = 5555;
 constexpr int LEADER_PORT = CLIENT_PORT + 10000;

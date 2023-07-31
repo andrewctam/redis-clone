@@ -1,7 +1,7 @@
 #ifndef CACHE_ENTRY_H
 #define CACHE_ENTRY_H
 
-#include "base_entry.h"
+#include "base_entry.hpp"
 
 class CacheEntry: public BaseEntry {
 public:

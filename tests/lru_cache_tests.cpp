@@ -1,9 +1,9 @@
 #include "gtest/gtest.h"
 
-#include "lru_cache.h"
-#include "unix_times.h"
-#include "linked_list.h"
-#include "entries/list_entry.h"
+#include "lru_cache.hpp"
+#include "unix_times.hpp"
+#include "linked_list.hpp"
+#include "entries/list_entry.hpp"
 
 TEST(LRUCacheTests, Clear) {
     LRUCache cache { };
