@@ -4,14 +4,8 @@ set(SRC_FILES
     linked_list.cpp
     command.cpp
     consistent-hashing.cpp
-    server.cpp
+    leader.cpp
+    worker.cpp
 )
 
 add_library(src_lib ${SRC_FILES})
-find_package(cppzmq)
-
-# Create an executable target with main
-add_executable(server main.cpp)
-
-# Link src files
-target_link_libraries(server cppzmq src_lib)

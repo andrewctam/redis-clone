@@ -5,7 +5,7 @@
 
 #include "command.h"
 #include "lru_cache.h"
-#include "server.h"
+#include "globals.h"
 #include "unix_times.h"
 #include "entries/list_entry.h"
 

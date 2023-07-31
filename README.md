@@ -6,9 +6,9 @@ This project is a distributed in-memory cache cloning many of the features of Re
 - **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. Alternatively, you could also open this project on [GitHub codespaces](https://github.com/codespaces).
 - Clone this repository: `https://github.com/andrewctam/redis-clone.git`
 - Install [cmake](https://cmake.org/install/).
-- Install [cppzmq](https://github.com/zeromq/cppzmq) .
-- In `./build`, run `cmake ..` to create a makefile (run `cmake -DTest=ON ..` to also build the tests). The initial cmake may take a while in order to fetch gRPC and GoogleTest
-- Finally, in `/.build` run `make` to run the makefile
+- Install [cppzmq](https://github.com/zeromq/cppzmq).
+- In `redis-clone/build`, run `cmake ..` to create a makefile.
+- Finally, in `redis-clone/build` run `make` to run the makefile
 
 ```
 git clone https://github.com/andrewctam/redis-clone.git
@@ -19,13 +19,22 @@ cmake ..
 
 make
 ```
+
+# Testing
+- Run `cmake -DTest=ON ..` in `redis-clone/build` to build the tests.
+- Change to the directory `redis-clone/build/tests` and execute `./tests` to run the tests
+
 # Usage
-- In `./build`:
-    - execute `./src/server` to start the server.
-    - execute `./client/client` to start a client.
-- Once the server has started, you can send commands from the client.
-- To run the test cases, execute `./tests/tests` (must have been built with -DTEST=ON).
-## Commands
+- If you built this project from source, go to `redis-clone/build/programs`. Otherwise if you downloaded a release, unzip the file, and change to the directory.
+- There should be 4 executables:
+    - `./leader_node` for creating a leader node.
+    - `./worker_node` to creating a worker node.
+    - `./client` for starting a client.
+    - `./server` for starting worker nodes, a leader node, and a client.
+
+- For a quick start, execute `./server` which will create 1 leader node, 3 worker nodes, and a client using fork and execv system calls.
+
+# Commands
 - For a list of commands, see [COMMANDS.md](./COMMANDS.md)
 - Commands are case-insensitive, but keys/values are case-sensitive
     - `GET Andrew` is the same as `get Andrew` but is not the same as `GET ANDREW`

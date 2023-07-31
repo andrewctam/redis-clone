@@ -2,7 +2,8 @@
 #include <iostream>
 
 #include "lru_cache.h"
-#include "server.h"
+#include "globals.h"
+
 
 
 LRUCache::LRUCache(long inital_size, long max_map_size): max_size(max_map_size) {

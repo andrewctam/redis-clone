@@ -1,6 +1,6 @@
 #include "consistent-hashing.h"
 
-ServerNode::ServerNode(std::string pid, std::string endpoint) :
+ServerNode::ServerNode(std::string pid, std::string endpoint, bool is_leader) :
     pid(pid), 
     context(new zmq::context_t(1)),
     socket(new zmq::socket_t(*context, zmq::socket_type::req)),

@@ -1,8 +1,13 @@
 #include "gtest/gtest.h"
 
 #include "command.h"
-#include "server.h"
+#include "globals.h"
 #include "unix_times.h"
+
+bool monitoring = false;
+bool stop = false;
+LRUCache cache {};
+int secs_offset = 0;
 
 class CommandTests: public ::testing::Test {
 protected:
