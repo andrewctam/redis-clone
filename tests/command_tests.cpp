@@ -14,7 +14,37 @@ protected:
         secs_offset = 0;
     }
 };
+TEST_F(CommandTests, ExtractName) {
+    EXPECT_EQ(cmd::extract_name("1 2 3"), "1");
+    EXPECT_EQ(cmd::extract_name(" 1  2 3"), "1");
+    EXPECT_EQ(cmd::extract_name("1 2"), "1");
+    EXPECT_EQ(cmd::extract_name("1"), "1");
+    EXPECT_EQ(cmd::extract_name(""), "");
+}
+TEST_F(CommandTests, ExtractKey) {
+    EXPECT_EQ(cmd::extract_key("1 2 3"), "2");
+    EXPECT_EQ(cmd::extract_key(" 1  2 3"), "2");
+    EXPECT_EQ(cmd::extract_key("1 2"), "2");
+    EXPECT_EQ(cmd::extract_key("1"), "");
+    EXPECT_EQ(cmd::extract_key(""), "");
+}
+TEST_F(CommandTests, Sets) {
+    EXPECT_EQ(cmd::addAll("dbsize"), true);
+    EXPECT_EQ(cmd::addAll("exists"), true);
+    EXPECT_EQ(cmd::addAll("get"), false);
 
+    EXPECT_EQ(cmd::concatAll("keys"), true);
+    EXPECT_EQ(cmd::concatAll("get"), false);
+
+    EXPECT_EQ(cmd::askAll("flushall"), true);
+    EXPECT_EQ(cmd::askAll("shutdown"), true);
+    EXPECT_EQ(cmd::askAll("get"), false);
+
+    EXPECT_EQ(cmd::nodeCmds("create"), true);
+    EXPECT_EQ(cmd::nodeCmds("kill"), true);
+    EXPECT_EQ(cmd::nodeCmds("nodes"), true);
+    EXPECT_EQ(cmd::nodeCmds("get"), false);
+}
 
 TEST_F(CommandTests, EmptyCommand) {
     Command cmd { "" };

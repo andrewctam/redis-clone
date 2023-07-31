@@ -11,8 +11,9 @@ public:
     zmq::context_t *context;
     zmq::socket_t *socket;
     int hash;
+    bool is_leader;
 
-    ServerNode(std::string pid, std::string endpoint);
+    ServerNode(std::string pid, std::string endpoint, bool is_leader);
     ~ServerNode();
 };
 
@@ -39,11 +40,17 @@ private:
 public:
     ConsistentHashing() {}
 
-    void add(std::string pid, std::string endpoint);
-
+    void add(std::string pid, std::string endpoint, bool is_leader);
+    void add_all(std::string internal_string);
+    
     ServerNode *get(const std::string &str);
+    ServerNode *get_by_pid(const std::string &str);
 
     int size() { return connected.size(); }
+
+    std::string to_user_string();
+    std::string to_internal_string();
+
 };
 
 

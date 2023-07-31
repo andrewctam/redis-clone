@@ -55,6 +55,15 @@ namespace cmd {
         };
         return cmds.find(str) != cmds.end();
     }
+
+    bool nodeCmds(const std::string& str) {
+         std::unordered_set<std::string> cmds = {
+            "nodes",
+            "create",
+            "kill"
+        };
+        return cmds.find(str) != cmds.end();
+    }
 }
 
 Command::Command(const std::string& str) {

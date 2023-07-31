@@ -14,6 +14,8 @@ namespace cmd {
     bool addAll(const std::string& str);
     bool concatAll(const std::string& str);
     bool askAll(const std::string& str);
+    bool nodeCmds(const std::string& str);
+
 }
 
 class Command {
