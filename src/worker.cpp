@@ -15,7 +15,7 @@ void start_worker() {
     // open connection to leader to send endpoint of this
     zmq::context_t leader_context{1};
     zmq::socket_t leader_socket{leader_context, zmq::socket_type::req};
-    leader_socket.connect("tcp://localhost:" + std::to_string(LEADER_PORT));
+    leader_socket.connect("tcp://localhost:" + std::to_string(internal_port));
 
     // open a endpoint
     zmq::context_t context{1};
@@ -37,7 +37,7 @@ void start_worker() {
             throw std::strerror(errno);
         }
     } catch (...) {
-        std::cout << "Error communicating with leader: " << std::strerror(errno) << std::endl;
+        std::cerr << "Error communicating with leader: " << std::strerror(errno) << std::endl;
         exit(EXIT_FAILURE);;
     }
 
@@ -60,7 +60,7 @@ void start_worker() {
         socket.send(zmq::buffer(parsed), zmq::send_flags::none);
       
         if (stop) {
-            std::cout << "Stopping worker node pid " << worker_pid << std::endl;
+            std::cerr << "Stopping worker node pid " << worker_pid << std::endl;
             exit(EXIT_SUCCESS);;
         }
     }

@@ -15,7 +15,7 @@ void start_leader() {
     // internal socket for talking to worker nodes
     zmq::context_t internal_context{1};
     zmq::socket_t internal_socket{internal_context, zmq::socket_type::rep};
-    internal_socket.bind("tcp://*:" + std::to_string(CLIENT_PORT + 10000));
+    internal_socket.bind("tcp://*:" + std::to_string(internal_port));
     internal_socket.set(zmq::sockopt::rcvtimeo, 200);
 
     // dealer socket for talking to all worker nodes at once
@@ -26,14 +26,14 @@ void start_leader() {
     // client socket for client requests
     zmq::context_t client_context{1};
     zmq::socket_t client_socket{client_context, zmq::socket_type::rep};
-    client_socket.bind("tcp://*:" + std::to_string(CLIENT_PORT));
+    client_socket.bind("tcp://*:" + std::to_string(client_port));
 
     // ring for consistent hashing and storing worker nodes
     std::string leader_pid = std::to_string(getpid());
     ConsistentHashing ring {};
     ring.add(leader_pid, internal_socket.get(zmq::sockopt::last_endpoint), true);
 
-    std::cout << "Started server with leader node with pid " << leader_pid << " on " 
+    std::cerr << "Started server with leader node with pid " << leader_pid << " on " 
         << client_socket.get(zmq::sockopt::last_endpoint)
         << std::endl;
 
@@ -57,7 +57,7 @@ void start_leader() {
         }
 
         if (stop) {
-            std::cout << "Stopping leader node pid " << leader_pid << std::endl;
+            std::cerr << "Stopping leader node pid " << leader_pid << std::endl;
             return;
         }
     }
@@ -80,14 +80,14 @@ void handle_new_node(zmq::socket_t &internal_socket, zmq::socket_t &dealer_socke
         // add to dealer
         dealer_socket.connect(endpoint);
 
-        std::cout << "Connected to worker node with pid: " 
+        std::cerr << "Connected to worker node with pid: " 
         << pid << " and endpoint: " << endpoint
         << std::endl;
 
         internal_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
     } catch (...) {
         if (ring.size() == 1) { //only master node
-            std::cout << "Failed to find any child nodes, will only use master node." << std::endl;
+            std::cerr << "Failed to find any child nodes, will only use master node." << std::endl;
         }
     }
 }
@@ -152,7 +152,7 @@ void handle_client_request(zmq::socket_t &client_socket, zmq::socket_t &dealer_s
             try {
                 sum += stoi(parsed);
             } catch (...) {
-                std::cout << "Error with this cmd: " << msg << std::endl;
+                std::cerr << "Error with this cmd: " << msg << std::endl;
             }
         } else if (shouldConcatAll) {
             if (parsed.size() > 0) {
@@ -176,13 +176,13 @@ void handle_client_request(zmq::socket_t &client_socket, zmq::socket_t &dealer_s
                     try {
                         sum += stoi(dealer_request.to_string());
                     } catch (...) {
-                        std::cout << "Error with this cmd: " << msg << std::endl;
+                        std::cerr << "Error with this cmd: " << msg << std::endl;
                     }
                 } else if (shouldConcatAll) {
                     ss << dealer_request.to_string() << " ";
                 }
             } catch (...) {
-                std::cout << "Recv " << count << " out of " << ring.size() << std::endl;
+                std::cerr << "Recv " << count << " out of " << ring.size() << std::endl;
             }
         }
 

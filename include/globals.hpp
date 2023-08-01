@@ -3,10 +3,10 @@
 
 #include "lru_cache.hpp"
 
-constexpr int CLIENT_PORT = 5555;
-constexpr int LEADER_PORT = CLIENT_PORT + 10000;
-
 // global vars used by the nodes
+extern int client_port;
+extern int internal_port;
+
 extern bool monitoring;
 extern bool stop;
 extern LRUCache cache;
