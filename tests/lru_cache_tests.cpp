@@ -183,3 +183,93 @@ TEST(LRUCacheTests, LRUTypes) {
     EXPECT_EQ(cache.key_set(), exp3);
     EXPECT_EQ(cache.get("num"), nullptr);
 }
+
+TEST(LRUCacheTests, ImportConstruct) {
+    std::string str = 
+    "key1\n"
+    "value1\n"
+    "key2\n"
+    "value2\n"
+    "key3\n"
+    "value3\n";
+
+    LRUCache cache { str, 5, 5 };
+
+    EXPECT_EQ(cache.size(), 3);
+    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
+    EXPECT_EQ(cache.get("key2")->to_string(), "value2");
+    EXPECT_EQ(cache.get("key3")->to_string(), "value3");
+}
+
+
+TEST(LRUCacheTests, Import) {
+    LRUCache cache { 5, 5 };
+
+    EXPECT_EQ(cache.import(""), true);
+    EXPECT_EQ(cache.size(), 0);
+
+    cache.add("key0", new StringEntry("value0"));
+    cache.add("key1", new StringEntry("1"));
+
+    std::string str = 
+    "key1\n"
+    "value1\n"
+    "key2\n"
+    "value2\n"
+    "key3\n"
+    "value3\n";
+
+    EXPECT_EQ(cache.import(str), true);
+
+    EXPECT_EQ(cache.size(), 4);
+    EXPECT_EQ(cache.get("key0")->to_string(), "value0");
+    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
+    EXPECT_EQ(cache.get("key2")->to_string(), "value2");
+    EXPECT_EQ(cache.get("key3")->to_string(), "value3");
+}
+
+
+TEST(LRUCacheTests, IncompleteImport) {
+    LRUCache cache { 5, 5 };
+
+    std::string str = 
+    "key1\n"
+    "value1\n"
+    "key2\n";
+
+    EXPECT_EQ(cache.import(str), false);
+
+    EXPECT_EQ(cache.size(), 1);
+    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
+}
+
+
+TEST(LRUCacheTests, Extract) {
+    LRUCache cache { 5, 5 };
+
+    std::string str = 
+    "key1\n"
+    "value1\n"
+    "key2\n"
+    "value2\n"
+    "key3\n"
+    "value3\n";
+    EXPECT_EQ(cache.import(str), true);
+    EXPECT_EQ(cache.size(), 3);
+
+    std::string extracted = cache.extract(361);
+    EXPECT_EQ(cache.size(), 0);
+    EXPECT_EQ(extracted.find("key1\nvalue1\n") == std::string::npos, false);
+    EXPECT_EQ(extracted.find("key2\nvalue2\n") == std::string::npos, false);
+    EXPECT_EQ(extracted.find("key3\nvalue3\n") == std::string::npos, false);
+
+    LRUCache cache2 { extracted, 5, 5 };;
+    EXPECT_EQ(cache2.size(), 3);
+    EXPECT_EQ(cache2.get("key1")->to_string(), "value1");
+    EXPECT_EQ(cache2.get("key2")->to_string(), "value2");
+    EXPECT_EQ(cache2.get("key3")->to_string(), "value3");
+}
+
+
+
+

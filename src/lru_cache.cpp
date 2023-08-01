@@ -1,9 +1,10 @@
 #include <list>
 #include <iostream>
 
+#include "entries/base_entry.hpp"
 #include "lru_cache.hpp"
 #include "globals.hpp"
-
+#include "consistent-hashing.hpp"
 
 
 LRUCache::LRUCache(long inital_size, long max_map_size): max_size(max_map_size) {
@@ -12,6 +13,11 @@ LRUCache::LRUCache(long inital_size, long max_map_size): max_size(max_map_size) 
     }
     keyMap.reserve(inital_size);
 }
+
+LRUCache::LRUCache(const std::string &import_str, long inital_size, long max_map_size): LRUCache(inital_size, max_map_size) {
+    import(import_str);
+}
+
 
 
 CacheEntry *LRUCache::get_cache_entry(const std::string& key) {
@@ -102,6 +108,13 @@ BaseEntry *LRUCache::remove(const std::string& key) {
     return nullptr;
 }
 
+std::vector<std::string> LRUCache::key_set(bool single_str) {
+    if (single_str) {
+        return entries.values(0, -1, false, true);    
+    } else {
+        return entries.values();
+    }
+}
 
 bool LRUCache::set_expire(const std::string& key, std::time_t time) {
     CacheEntry *cache_entry = get_cache_entry(key);
@@ -121,4 +134,44 @@ bool LRUCache::set_expire(const std::string& key, std::time_t time) {
 void LRUCache::clear() {
     entries.clear();
     keyMap.clear();
+}
+
+
+std::string LRUCache::extract(int upper_bound) {
+    std::stringstream ss;
+    std::vector<std::string> remove_keys;
+
+    for (auto it = keyMap.begin(); it != keyMap.end(); it++) {
+        std::string key = it->first;
+        if (hash_function(key) < upper_bound) {
+            BaseEntry *entry = it->second->value;
+            if (entry->get_type() == EntryType::cache) {
+                CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
+                ss << key << "\n" << cache_entry->cached->to_string() << "\n";
+            }
+
+            remove_keys.push_back(key);
+        }
+    }
+
+    for (auto &key : remove_keys) {
+        remove(key);
+    }
+
+    return ss.str();
+}
+
+bool LRUCache::import(const std::string& import_str) {
+    std::istringstream iss(import_str);
+
+    for (std::string key; std::getline(iss, key); ) {
+        std::string value;
+        if (std::getline(iss, value)) {
+            add(key, str_to_base_entry(value));
+        } else {
+            return false;
+        }
+    }
+
+    return true;
 }

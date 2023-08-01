@@ -5,6 +5,8 @@
 #include <string>
 #include <zmq.hpp>
 
+int hash_function(const std::string &str);
+
 class ServerNode {
 public:
     std::string pid;
@@ -25,13 +27,14 @@ struct Compare {
     }
 
     bool operator()(ServerNode* const &node, const std::string &str) const {
-        return node->hash < std::hash<std::string>()(str) % 360;
+        return node->hash < hash_function(str);
     }
 
     bool operator()(const std::string &str, ServerNode* const&node) const {
-        return std::hash<std::string>()(str) % 360 < node->hash;
+        return hash_function(str) < node->hash;
     }
 };
+
 
 class ConsistentHashing {
 private:

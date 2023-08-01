@@ -1,10 +1,14 @@
 #include "consistent-hashing.hpp"
 
+int hash_function(const std::string &str) {
+    return std::hash<std::string>()(str) % 360;
+}
+
 ServerNode::ServerNode(std::string pid, std::string endpoint, bool is_leader) :
     pid(pid), 
     context(new zmq::context_t(1)),
     socket(new zmq::socket_t(*context, zmq::socket_type::req)),
-    hash(std::hash<std::string>()(pid + endpoint) % 360),
+    hash(hash_function(pid + endpoint)),
     is_leader(is_leader) {
 
     socket->connect(endpoint);

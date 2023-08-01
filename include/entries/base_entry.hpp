@@ -2,7 +2,6 @@
 #define BASE_ENTRY_H
 
 #include <string>
-#include <iostream>
 
 #include "unix_times.hpp"
 
@@ -22,6 +21,7 @@ public:
     virtual ~BaseEntry() { }
 };
 
+BaseEntry *str_to_base_entry(std::string str);
 
 // entries constructed of primitives
 

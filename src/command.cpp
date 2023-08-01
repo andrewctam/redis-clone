@@ -1,12 +1,15 @@
 #include <iterator>
 #include <sstream>
 #include <unordered_set>
+#include <unordered_map>
+
 #include <functional>
 
 #include "command.hpp"
 #include "lru_cache.hpp"
 #include "globals.hpp"
 #include "unix_times.hpp"
+#include "entries/base_entry.hpp"
 #include "entries/list_entry.hpp"
 
 namespace cmd {
@@ -56,13 +59,21 @@ namespace cmd {
         return cmds.find(str) != cmds.end();
     }
 
-    bool nodeCmds(const std::string& str) {
-         std::unordered_set<std::string> cmds = {
-            "nodes",
-            "create",
-            "kill"
+    
+
+    NodeCMDType nodeCmds(const std::string& str) {
+         std::unordered_map<std::string, NodeCMDType> cmds = {
+            {"nodes", NodeCMDType::Nodes},
+            {"create", NodeCMDType::Create},
+            {"kill", NodeCMDType::Kill}
         };
-        return cmds.find(str) != cmds.end();
+
+        auto it = cmds.find(str);
+        if (it == cmds.end()) {
+            return NodeCMDType::Not;
+        }
+
+        return it->second;
     }
 }
 
@@ -71,21 +82,6 @@ Command::Command(const std::string& str) {
     std::istream_iterator<std::string> begin (ss), end;
     args = std::vector<std::string> (begin, end);
 };
-
-BaseEntry *Command::str_to_base_entry(std::string str) {
-    try {
-        for(char& ch : str) {
-            if (ch < '0' || ch > '9') {
-                throw "Not an int";
-            }
-        }
-        
-        int intVal = std::stoi(str);
-        return new IntEntry(intVal);
-    } catch(...) {
-        return new StringEntry(str);
-    }
-}
 
 std::string Command::parse_cmd() {
     if (args.size() == 0) {

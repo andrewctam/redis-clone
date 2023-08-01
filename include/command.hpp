@@ -14,14 +14,21 @@ namespace cmd {
     bool addAll(const std::string& str);
     bool concatAll(const std::string& str);
     bool askAll(const std::string& str);
-    bool nodeCmds(const std::string& str);
+
+    enum class NodeCMDType {
+        Not,
+        Nodes,
+        Create,
+        Kill
+    };
+
+    NodeCMDType nodeCmds(const std::string& str);
 
 }
 
 class Command {
 private:
     std::vector<std::string> args;
-    BaseEntry *str_to_base_entry(std::string str);
 
     std::string echo();
     std::string ping();

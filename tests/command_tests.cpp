@@ -45,10 +45,10 @@ TEST_F(CommandTests, Sets) {
     EXPECT_EQ(cmd::askAll("shutdown"), true);
     EXPECT_EQ(cmd::askAll("get"), false);
 
-    EXPECT_EQ(cmd::nodeCmds("create"), true);
-    EXPECT_EQ(cmd::nodeCmds("kill"), true);
-    EXPECT_EQ(cmd::nodeCmds("nodes"), true);
-    EXPECT_EQ(cmd::nodeCmds("get"), false);
+    EXPECT_EQ(cmd::nodeCmds("create"), cmd::NodeCMDType::Create);
+    EXPECT_EQ(cmd::nodeCmds("kill"), cmd::NodeCMDType::Kill);
+    EXPECT_EQ(cmd::nodeCmds("nodes"), cmd::NodeCMDType::Nodes);
+    EXPECT_EQ(cmd::nodeCmds("get"), cmd::NodeCMDType::Not);
 }
 
 TEST_F(CommandTests, EmptyCommand) {

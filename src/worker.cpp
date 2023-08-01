@@ -1,6 +1,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include <errno.h>
+#include <string>
 
 #include "command.hpp"
 #include "lru_cache.hpp"
@@ -48,8 +49,11 @@ void start_worker() {
         zmq::recv_result_t res = socket.recv(request, zmq::recv_flags::none);
 
         std::string msg = request.to_string();
-
-        if (msg == "kill") {
+    
+        
+        if (cmd::nodeCmds(cmd::extract_name(msg)) == cmd::NodeCMDType::Kill && 
+            cmd::extract_key(msg) == worker_pid
+        ) {
             socket.send(zmq::buffer("OK"), zmq::send_flags::none);
             exit(EXIT_SUCCESS);
         }

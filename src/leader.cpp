@@ -1,6 +1,7 @@
 #include <iostream>
 #include <zmq.hpp>
 #include <unistd.h>
+#include <string>
 
 #include "command.hpp"
 #include "lru_cache.hpp"
@@ -107,34 +108,43 @@ void handle_client_request(zmq::socket_t &client_socket, zmq::socket_t &dealer_s
     
     // does this command require asking all the nodes?
     std::string name = cmd::extract_name(msg);
-    bool isNodeCmd = cmd::nodeCmds(name);
+    cmd::NodeCMDType nodeCmd = cmd::nodeCmds(name);
     bool shouldAddAll = cmd::addAll(name);
     bool shouldConcatAll = cmd::concatAll(name);
     bool shouldAskAll = cmd::askAll(name);
 
-    if (isNodeCmd) {
-        if (name == "nodes") {
-            reply = ring.to_user_string();
-        } else if (name == "kill") {
-            ServerNode *node = ring.get_by_pid(cmd::extract_key(msg));
-            if (!node) {
-                reply = "Node not found";
-            } else if (node->pid == leader_pid) {
-                client_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
-                exit(EXIT_SUCCESS);
-            } else {
-                node->socket->send(zmq::buffer("kill"), zmq::send_flags::none);
-                zmq::recv_result_t res = node->socket->recv(request, zmq::recv_flags::none);
-                reply = request.to_string();
+    if (nodeCmd != cmd::NodeCMDType::Not) {
+        switch(nodeCmd) {
+            case cmd::NodeCMDType::Nodes: {
+                reply = ring.to_user_string();
+                break;
             }
-        } else if (name == "create") {
-            int pid = fork();
-            if (pid == 0) {
-                execlp("./worker_node", "./worker_node", nullptr);
-                exit(EXIT_FAILURE);
-            } else {
-                reply = "Worker node created with pid " + std::to_string(pid);
+            case cmd::NodeCMDType::Create: {
+                int pid = fork();
+                if (pid == 0) {
+                    execlp("./worker_node", "./worker_node", nullptr);
+                    exit(EXIT_FAILURE);
+                } else {
+                    reply = "Worker node created with pid " + std::to_string(pid);
+                }
+                break;
             }
+            case cmd::NodeCMDType::Kill: {
+                ServerNode *node = ring.get_by_pid(cmd::extract_key(msg));
+                if (!node) {
+                    reply = "Node not found";
+                } else if (node->pid == leader_pid) {
+                    client_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
+                    exit(EXIT_SUCCESS);
+                } else {
+                    node->socket->send(zmq::buffer(msg), zmq::send_flags::none);
+                    zmq::recv_result_t res = node->socket->recv(request, zmq::recv_flags::none);
+                    reply = request.to_string();
+                }
+                break;
+            }
+            default:
+                break;
         }
     } else if (shouldAddAll || shouldConcatAll || shouldAskAll) {
         for (int i = 0; i < ring.size() - 1; i++) {
@@ -179,7 +189,10 @@ void handle_client_request(zmq::socket_t &client_socket, zmq::socket_t &dealer_s
                         std::cerr << "Error with this cmd: " << msg << std::endl;
                     }
                 } else if (shouldConcatAll) {
-                    ss << dealer_request.to_string() << " ";
+                    std::string str = dealer_request.to_string();
+                    if (str.size() > 0) {
+                        ss << str << " ";
+                    }
                 }
             } catch (...) {
                 std::cerr << "Recv " << count << " out of " << ring.size() << std::endl;

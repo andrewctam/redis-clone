@@ -1,5 +1,6 @@
 # Source files in the src directory
-set(SRC_FILES
+set(SRC_FILES   
+    base_entry.cpp
     lru_cache.cpp
     linked_list.cpp
     command.cpp
