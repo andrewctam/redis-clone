@@ -15,13 +15,14 @@ BaseEntry *str_to_base_entry(std::string str) {
 
         while (it != std::istream_iterator<std::string>()) {
             list->add_end(str_to_base_entry(*it));
+            it++;
         }
 
         return list_entry;
     }
 
     try {
-        for(char& ch : str) {
+        for(char ch : str) {
             if (ch < '0' || ch > '9') {
                 throw "Not an int";
             }

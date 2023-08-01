@@ -10,16 +10,6 @@ int client_port = 5555;
 int internal_port = -1;
 
 int main(int argc, char *argv[]) {
-    std::string str = 
-    "key1\n"
-    "value1\n"
-    "key2\n"
-    "value2\n"
-    "key3\n"
-    "value3\n";
-
-    LRUCache cache { str, 5, 5 };
-    cache.extract(1000);
     
     while (true) {
         int option_index = 0;

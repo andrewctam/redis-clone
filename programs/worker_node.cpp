@@ -10,7 +10,17 @@ int client_port = 5555;
 int internal_port = -1;
 
 int main(int argc, char *argv[]) {
-    
+    LRUCache cache { 5, 5 };
+
+    std::string str = 
+    "key1\n"
+    "value1\n"
+    "key2\n"
+    "2\n"
+    "key3\n"
+    "str 2 3\n";
+    cache.import(str);
+
     while (true) {
         int option_index = 0;
         static struct option long_options[] = {

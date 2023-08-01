@@ -251,23 +251,29 @@ TEST(LRUCacheTests, Extract) {
     "key1\n"
     "value1\n"
     "key2\n"
-    "value2\n"
+    "2\n"
     "key3\n"
-    "value3\n";
+    "str 2 3\n";
     EXPECT_EQ(cache.import(str), true);
     EXPECT_EQ(cache.size(), 3);
 
     std::string extracted = cache.extract(361);
     EXPECT_EQ(cache.size(), 0);
     EXPECT_EQ(extracted.find("key1\nvalue1\n") == std::string::npos, false);
-    EXPECT_EQ(extracted.find("key2\nvalue2\n") == std::string::npos, false);
-    EXPECT_EQ(extracted.find("key3\nvalue3\n") == std::string::npos, false);
+    EXPECT_EQ(extracted.find("key2\n2\n") == std::string::npos, false);
+    EXPECT_EQ(extracted.find("key3\nstr 2 3\n") == std::string::npos, false);
 
     LRUCache cache2 { extracted, 5, 5 };;
     EXPECT_EQ(cache2.size(), 3);
+    
     EXPECT_EQ(cache2.get("key1")->to_string(), "value1");
-    EXPECT_EQ(cache2.get("key2")->to_string(), "value2");
-    EXPECT_EQ(cache2.get("key3")->to_string(), "value3");
+    EXPECT_EQ(cache2.get("key1")->get_type(), EntryType::str);
+
+    EXPECT_EQ(cache2.get("key2")->to_string(), "2");
+    EXPECT_EQ(cache2.get("key2")->get_type(), EntryType::integer);
+
+    EXPECT_EQ(cache2.get("key3")->to_string(), "str 2 3");
+    EXPECT_EQ(cache2.get("key3")->get_type(), EntryType::list);
 }
 
 
