@@ -1,6 +1,8 @@
+#include <getopt.h>
+
 #include "worker.hpp"
 #include "globals.hpp"
-#include <getopt.h>
+#include "consistent-hashing.hpp"
 
 bool monitoring = false;
 bool stop = false;
@@ -8,6 +10,7 @@ LRUCache cache {};
 int secs_offset = 0;
 int client_port = 5555;
 int internal_port = -1;
+ConsistentHashing ring {false};
 
 int main(int argc, char *argv[]) {
     LRUCache cache { 5, 5 };

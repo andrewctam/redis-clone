@@ -19,8 +19,34 @@ ServerNode::~ServerNode() {
     delete context;
 }
 
+ConsistentHashing::ConsistentHashing(bool init_dealer) {
+    dealer_active = false;
+
+    if (init_dealer) {        
+        set_up_dealer();
+    }
+}
+ConsistentHashing::~ConsistentHashing() {
+    if (dealer_active) {
+        delete dealer_socket;
+        delete dealer_context;
+    }
+}
+void ConsistentHashing::set_up_dealer() {
+    if (!dealer_active) {
+        dealer_active = true;
+        dealer_context = new zmq::context_t(1);
+        dealer_socket = new zmq::socket_t(*dealer_context, zmq::socket_type::dealer); 
+        dealer_socket->set(zmq::sockopt::rcvtimeo, 200);
+    }
+}
+
 void ConsistentHashing::add(std::string pid, std::string endpoint, bool is_leader) {
     connected.insert(new ServerNode(pid, endpoint, is_leader));
+
+    if (dealer_active) {
+        dealer_socket->connect(endpoint);
+    }
 }
 
 void ConsistentHashing::add_all(std::string internal_string) {

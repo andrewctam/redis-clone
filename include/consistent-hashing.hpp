@@ -39,10 +39,16 @@ struct Compare {
 class ConsistentHashing {
 private:
     std::set<ServerNode*, Compare> connected;
-
+    bool dealer_active;
 public:
-    ConsistentHashing() {}
+    zmq::context_t *dealer_context;
+    zmq::socket_t *dealer_socket;
 
+    ConsistentHashing(bool init_dealer);
+    ~ConsistentHashing();
+    
+    void set_up_dealer();
+    
     void add(std::string pid, std::string endpoint, bool is_leader);
     void add_all(std::string internal_string);
     

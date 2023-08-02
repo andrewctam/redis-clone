@@ -1,4 +1,5 @@
 # Commands
+
 #### Table of Contents
 - [Misc](#misc)
 - [Nodes](#nodes)
@@ -12,9 +13,10 @@
 - `ping`
     - Returns PONG.
 - `monitor`    
-    - Toggles live montioring of commands (sent to stderr). Returns ACTIVE or INACTIVE.
+    - Toggles live montioring of commands (printed to stderr of leader node). Returns ACTIVE or INACTIVE.
 - `benchmark num`
     - Performs num commands and returns the time taken in ms.
+
 ## Nodes
 - `nodes`
     - List all nodes with their pid and leader status.
@@ -24,6 +26,7 @@
     - Kills the node with the specified pid.
 - `shutdown`
     - Shuts down the server and stops all nodes.
+
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or (NIL) if no value is found.
@@ -79,7 +82,7 @@ Use `lpush` or `rpush` to set a key to a Linked List, which can store either str
     - Same as lpush but elements are inserted from the tail of the list.
     - Elements are processed from left to right, so `RPUSH key 1 2 3` sets key to [1 2 3].
 - `lpop key [count]`
-    - Remvoves and returns elements from the head of the list 
+    - Removes and returns elements from the head of the list 
     - If count is not provided, removes 1 element.
     - If there is nothing stored at key, returns (NIL).
 - `rpop key [count]`
