@@ -144,19 +144,20 @@ std::string LRUCache::extract(int upper_bound) {
     for (auto it = keyMap.begin(); it != keyMap.end(); it++) {
         std::string key = it->first;
         if (hash_function(key) < upper_bound) {
+            // add this key/value to the string
             BaseEntry *entry = it->second->value;
             if (entry->get_type() == EntryType::cache) {
                 CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
                 ss << key << "\n" << cache_entry->cached->to_string() << "\n";
             }
 
-            remove_keys.push_back(key);
+            //move node for LRU deletion
+            Node *node = it->second;
+            it->second = entries.add_front(entries.remove_node(node));
         }
     }
 
-    for (auto &key : remove_keys) {
-        remove(key);
-    }
+   
 
     return ss.str();
 }

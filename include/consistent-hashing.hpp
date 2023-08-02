@@ -19,6 +19,7 @@ public:
     ~ServerNode();
 };
 
+
 struct Compare {
     using is_transparent = void;
 
@@ -35,7 +36,6 @@ struct Compare {
     }
 };
 
-
 class ConsistentHashing {
 private:
     std::set<ServerNode*, Compare> connected;
@@ -44,15 +44,16 @@ public:
     zmq::context_t *dealer_context;
     zmq::socket_t *dealer_socket;
 
-    ConsistentHashing(bool init_dealer);
+    ConsistentHashing(bool init_dealer = false);
     ~ConsistentHashing();
     
     void set_up_dealer();
     
-    void add(std::string pid, std::string endpoint, bool is_leader);
-    void add_all(std::string internal_string);
+    ServerNode *add(std::string pid, std::string endpoint, bool is_leader);
+    void update(std::string internal_string);
     
     ServerNode *get(const std::string &str);
+
     ServerNode *get_by_pid(const std::string &str);
 
     int size() { return connected.size(); }

@@ -1,4 +1,5 @@
 #include "consistent-hashing.hpp"
+#include <unordered_set>
 
 int hash_function(const std::string &str) {
     return std::hash<std::string>()(str) % 360;
@@ -19,6 +20,7 @@ ServerNode::~ServerNode() {
     delete context;
 }
 
+
 ConsistentHashing::ConsistentHashing(bool init_dealer) {
     dealer_active = false;
 
@@ -26,34 +28,44 @@ ConsistentHashing::ConsistentHashing(bool init_dealer) {
         set_up_dealer();
     }
 }
+
 ConsistentHashing::~ConsistentHashing() {
     if (dealer_active) {
         delete dealer_socket;
         delete dealer_context;
     }
 }
+
 void ConsistentHashing::set_up_dealer() {
     if (!dealer_active) {
         dealer_active = true;
         dealer_context = new zmq::context_t(1);
         dealer_socket = new zmq::socket_t(*dealer_context, zmq::socket_type::dealer); 
         dealer_socket->set(zmq::sockopt::rcvtimeo, 200);
+
+        for (auto it = connected.begin(); it != connected.end(); ++it) {
+            std::string endpoint = (*it)->socket->get(zmq::sockopt::last_endpoint);
+            dealer_socket->connect(endpoint);
+        }
     }
 }
 
-void ConsistentHashing::add(std::string pid, std::string endpoint, bool is_leader) {
-    connected.insert(new ServerNode(pid, endpoint, is_leader));
+ServerNode *ConsistentHashing::add(std::string pid, std::string endpoint, bool is_leader) {
+    ServerNode *node = new ServerNode(pid, endpoint, is_leader); 
+    connected.insert(node);
 
     if (dealer_active) {
         dealer_socket->connect(endpoint);
     }
+
+    return node;
 }
 
-void ConsistentHashing::add_all(std::string internal_string) {
+void ConsistentHashing::update(std::string internal_string) {
     std::istringstream iss(internal_string);
-
     std::istream_iterator<std::string> it(iss);
 
+    std::unordered_set<ServerNode *> nodes;
     while (it != std::istream_iterator<std::string>()) {
         int sep = (*it).find(",");
         bool leader = false; 
@@ -63,7 +75,7 @@ void ConsistentHashing::add_all(std::string internal_string) {
         
         if ((*it).at(0) == '*') {
             leader = true;
-            pid = (*it).substr(1, sep);
+            pid = (*it).substr(1, sep - 1);
         } else {
             pid = (*it).substr(0, sep);
         }
@@ -74,10 +86,22 @@ void ConsistentHashing::add_all(std::string internal_string) {
             existing->pid != pid ||
             existing->socket->get(zmq::sockopt::last_endpoint) != endpoint) {
 
-            add(pid, endpoint, leader);
+            nodes.insert(add(pid, endpoint, leader));
+        } else {
+            nodes.insert(existing);
         }
 
         ++it;
+    }
+
+    // remove nodes that were not in the latest update
+    auto it_rem = connected.begin();
+    while (it_rem != connected.end()) {
+        if (nodes.find(*it_rem) == nodes.end()) {
+            it_rem = connected.erase(it_rem);
+        } else {
+            it_rem++;
+        }
     }
 }
 
@@ -89,6 +113,7 @@ ServerNode *ConsistentHashing::get(const std::string &str) {
 
     return *it;
 }
+
 
 ServerNode *ConsistentHashing::get_by_pid(const std::string &target) {
     if (target.size() == 0) {

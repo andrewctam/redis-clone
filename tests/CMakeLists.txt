@@ -15,6 +15,7 @@ set(TEST_SOURCES
   lru_cache_tests.cpp
   linked_list_tests.cpp
   command_tests.cpp
+  consistent_hashing_tests.cpp
 )
 
 enable_testing()

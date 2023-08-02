@@ -105,7 +105,7 @@ void handle_pings() {
                 throw std::strerror(errno);
             }
 
-            ring.add_all(reply.to_string());    
+            ring.update(reply.to_string());    
             std::this_thread::sleep_for(1000ms);
         } catch (...) {
             std::cerr << "Leader did not reply to ping" << std::endl;
@@ -116,4 +116,9 @@ void handle_pings() {
 
 void start_leader_election() {
     std::cout << "Calling an election..." << std::endl;
+}
+
+void promote_to_leader() {
+    std::cout << "Promoting to leader..." << std::endl;
+    ring.set_up_dealer();
 }

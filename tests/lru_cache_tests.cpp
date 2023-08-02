@@ -258,7 +258,6 @@ TEST(LRUCacheTests, Extract) {
     EXPECT_EQ(cache.size(), 3);
 
     std::string extracted = cache.extract(361);
-    EXPECT_EQ(cache.size(), 0);
     EXPECT_EQ(extracted.find("key1\nvalue1\n") == std::string::npos, false);
     EXPECT_EQ(extracted.find("key2\n2\n") == std::string::npos, false);
     EXPECT_EQ(extracted.find("key3\nstr 2 3\n") == std::string::npos, false);

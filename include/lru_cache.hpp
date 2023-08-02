@@ -25,10 +25,9 @@ public:
     ~LRUCache() { clear(); }
     
     long max_size;
-    long size() { 
-        return keyMap.size();
-    }
+    long size() { return keyMap.size(); }
 
+    // adds an entry, deleting the entry at the start of the LRU queue if full
     void add(const std::string& key, BaseEntry *value);
     BaseEntry *remove(const std::string& key);
 
@@ -41,9 +40,9 @@ public:
 
     void clear();
 
-    // removes all entries with a hash value less than upper_bound, while
-    // returning a string that can be sent to another LRU cache
-    // to add these elements using import()
+    // returns a string with all entries with a hash value less than upper_bound
+    // that can be added to another LRU cache using import()
+    // also moves all entries to the start of the LRU queue for imminent deletion
     std::string extract(int upper_bound);
     bool import(const std::string& import_str);
 };
