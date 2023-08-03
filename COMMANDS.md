@@ -13,10 +13,12 @@
 - `ping`
     - Returns PONG.
 - `monitor`    
-    - Toggles live montioring of commands (printed to stderr of leader node). Returns ACTIVE or INACTIVE.
+    - Toggles live montioring of commands. Returns ACTIVE or INACTIVE.
+    - Prints commands entered and nodes where keys are stored to stderr.
 - `benchmark num`
     - Performs num commands and returns the time taken in ms.
-
+- `hash key`
+    - Returns the hash value of a key.
 ## Nodes
 - `nodes`
     - List all nodes with their pid and leader status.

@@ -11,6 +11,7 @@
 #include "unix_times.hpp"
 #include "entries/base_entry.hpp"
 #include "entries/list_entry.hpp"
+#include "consistent-hashing.hpp"
 
 namespace cmd {
     std::string extract_name(const std::string& str) {
@@ -518,4 +519,12 @@ std::string Command::llen() {
     LinkedList *list = list_entry->list;
 
     return std::to_string(list->get_size()) + "";
+}
+
+std::string Command::hash() {
+    if (args.size() < 2) {
+        return "FAILURE";
+    }
+
+    return std::to_string(hash_function(args[1]));
 }

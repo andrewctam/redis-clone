@@ -156,11 +156,9 @@ std::string ConsistentHashing::to_user_string() {
 
     for (auto it = connected.begin(); it != connected.end(); ++it) {
         ServerNode *node = *it;
-        if (node->is_leader) {
-            ss << "Leader: " << node->pid << "\n";
-        } else {
-            ss << "Worker: " << node->pid << "\n";
-        }
+        std::string type = node->is_leader ? "Leader" : "Worker";
+
+        ss << type << " pid: " << node->pid << ". Hash: " << node->hash << "\n";
     }
 
     return ss.str();

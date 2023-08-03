@@ -652,3 +652,18 @@ TEST_F(CommandTests, flushall) {
     Command keys { "keys" };
     EXPECT_EQ(keys.parse_cmd(), "");
 }
+
+
+TEST_F(CommandTests, Hash) {
+    Command empty { "hash" };
+    EXPECT_EQ(empty.parse_cmd(), "FAILURE");
+
+    Command hash1 { "hash 10" };
+    EXPECT_EQ(hash1.parse_cmd(), "103");
+
+    Command hash2 { "hash unix" };
+    EXPECT_EQ(hash2.parse_cmd(), "115");
+
+    Command hash3 { "hash abc123" };
+    EXPECT_EQ(hash3.parse_cmd(), "249");
+}

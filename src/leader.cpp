@@ -187,6 +187,11 @@ void handle_client_requests() {
             std::string key = cmd::extract_key(msg);
             if (key != "") {
                 worker = ring.get(key);
+                if (monitoring) {
+                    std::cerr << key << " [" << hash_function(key)
+                        << "] in to Node [" << worker->hash << "] with pid " 
+                        << worker->pid  << std::endl;
+                }
             }
 
             if (worker && worker->pid != leader_pid) {

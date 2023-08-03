@@ -52,6 +52,7 @@ private:
     std::string list_pop();
     std::string lrange();
     std::string llen();
+    std::string hash();
 
     std::map<
         std::string, 
@@ -84,6 +85,8 @@ private:
         {"rpop", std::bind(&Command::list_pop, this)},
         {"lrange", std::bind(&Command::lrange, this)},
         {"llen", std::bind(&Command::llen, this)},
+        {"hash", std::bind(&Command::hash, this)},
+
     };
 
 
