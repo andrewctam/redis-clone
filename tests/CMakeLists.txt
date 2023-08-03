@@ -16,6 +16,7 @@ set(TEST_SOURCES
   linked_list_tests.cpp
   command_tests.cpp
   consistent_hashing_tests.cpp
+  server_tests.cpp
 )
 
 enable_testing()
