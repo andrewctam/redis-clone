@@ -18,8 +18,8 @@ void create_socket(std::string port) {
 
 std::string send_str(ServerNode *node, std::string str) {
     zmq::message_t request;
-    node->socket->send(zmq::buffer(str), zmq::send_flags::none);
-    zmq::recv_result_t res = node->socket->recv(request, zmq::recv_flags::none);
+    node->send(str);
+    node->recv(request);
     //extra \0 without substr
     return request.to_string().substr(0, str.size());
 }
@@ -29,7 +29,7 @@ TEST(ConsistentHashingTests, Connections) {
     std::thread two(create_socket, "25552");
     std::thread three(create_socket, "25553");
 
-    ConsistentHashing ch_ring { false };
+    ConsistentHashing ch_ring;
 
     EXPECT_EQ(ch_ring.add("one", "tcp://localhost:25551", true) != nullptr, true);
     EXPECT_EQ(ch_ring.add("two", "tcp://localhost:25552", false) != nullptr, true);
@@ -59,7 +59,7 @@ TEST(ConsistentHashingTests, ConnectionsUpdate) {
     std::thread two(create_socket, "25552");
     std::thread three(create_socket, "25553");
 
-    ConsistentHashing ch_ring { false };
+    ConsistentHashing ch_ring;
     EXPECT_EQ(ch_ring.add("one", "tcp://localhost:25551", false) != nullptr, true);
 
     ServerNode *node_one = ch_ring.get_by_pid("one");
@@ -67,7 +67,7 @@ TEST(ConsistentHashingTests, ConnectionsUpdate) {
     EXPECT_EQ(send_str(node_one, "Hi from 1"), "Hi from 1");
     one.join();
 
-    ConsistentHashing ch_ring2 { false };
+    ConsistentHashing ch_ring2;
     EXPECT_EQ(ch_ring2.add("two", "tcp://localhost:25552", true) != nullptr, true);
     EXPECT_EQ(ch_ring2.add("three", "tcp://localhost:25553", false) != nullptr, true);
 
@@ -95,10 +95,10 @@ TEST(ConsistentHashingTests, ConnectionsUpdateExisting) {
     std::thread two(create_socket, "25552");
     std::thread three(create_socket, "25553");
 
-    ConsistentHashing ch_ring { false };
+    ConsistentHashing ch_ring;
     EXPECT_EQ(ch_ring.add("one", "tcp://localhost:25551", false) != nullptr, true);
 
-    ConsistentHashing ch_ring2 { false };
+    ConsistentHashing ch_ring2;
     EXPECT_EQ(ch_ring2.add("one", "tcp://localhost:25551", false) != nullptr, true);
     EXPECT_EQ(ch_ring2.add("two", "tcp://localhost:25552", true) != nullptr, true);
     EXPECT_EQ(ch_ring2.add("three", "tcp://localhost:25553", false) != nullptr, true);
@@ -130,7 +130,7 @@ TEST(ConsistentHashingTests, ConsistentHashing) {
     std::thread two(create_socket, "25552");
     std::thread three(create_socket, "25553");
 
-    ConsistentHashing ch_ring { false };
+    ConsistentHashing ch_ring;
 
     EXPECT_EQ(ch_ring.add("a", "tcp://localhost:25551", true) != nullptr, true);
     EXPECT_EQ(ch_ring.add("b", "tcp://localhost:25552", false) != nullptr, true);

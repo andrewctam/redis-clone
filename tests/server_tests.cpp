@@ -17,20 +17,25 @@ FILE *client_stderr;
 // returns an empty string if equal
 // returns the read string if not equal
 std::string check_str(FILE *file, char const *exp, bool end_of_line = true) {
-    char buf[512];
+    int MAX_LEN = 512;
+    char buf[MAX_LEN];
     int len = strlen(exp);
 
-    if (len >= 512) {
-        return "String too long";
+    if (len >= MAX_LEN) {
+        return "String too long. Increase MAX_LEN.";
     }
 
-    fgets(buf, end_of_line ? 512 : len + 1, file);
+    fgets(buf, end_of_line ? MAX_LEN : len + 1, file);
     if (strncmp(buf, exp, len) == 0) {
         return "";
     }
 
     *(buf + len) = '\0';
     return std::string(buf);
+}
+
+int send_str(const char *str) {
+    return write(client_stdin, str, strlen(str));
 }
 
 TEST(ServerTests, SetUp) {
@@ -72,16 +77,21 @@ TEST(ServerTests, SetUp) {
     }
 }
 
-
-TEST(ServerTests, StartUp) {
-    usleep(1000 * 100);
-    
+TEST(ServerTests, StartUp) {    
     EXPECT_EQ(check_str(client_stderr, "Started server with leader node with pid"), "");
     EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
     EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
     EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
     EXPECT_EQ(check_str(client_stdout, "Client started!"), "");
     EXPECT_EQ(check_str(client_stdout, "> ", false), "");
-
 }
 
+TEST(ServerTests, BasicCache) {    
+    EXPECT_GT(send_str("set a 1\n"), 0);
+    EXPECT_EQ(check_str(client_stdout, "SUCCESS"), "");
+    EXPECT_EQ(check_str(client_stdout, "> ", false), "");
+
+    EXPECT_GT(send_str("get a\n"), 0);
+    EXPECT_EQ(check_str(client_stdout, "1"), "");
+    EXPECT_EQ(check_str(client_stdout, "> ", false), "");
+}

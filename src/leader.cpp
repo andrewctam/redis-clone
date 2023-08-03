@@ -34,12 +34,12 @@ void handle_internal_requests() {
     
     while (true) {
         try {
-            zmq::message_t reply{};
+            zmq::message_t reply;
             zmq::recv_result_t res = internal_socket.recv(reply, zmq::recv_flags::none);
 
             // new connections contain a message, pings are empty
             if (reply.to_string().size() > 0) {
-                 std::string payload = reply.to_string();
+                std::string payload = reply.to_string();
 
                 // add to ring
                 int sep = payload.find(" ");
@@ -115,8 +115,8 @@ void handle_client_requests() {
                         client_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
                         exit(EXIT_SUCCESS);
                     } else {
-                        node->socket->send(zmq::buffer(msg), zmq::send_flags::none);
-                        zmq::recv_result_t res = node->socket->recv(request, zmq::recv_flags::none);
+                        node->send(msg);
+                        node->recv(request);
                         reply = request.to_string();
                     }
                     break;
@@ -191,8 +191,8 @@ void handle_client_requests() {
 
             if (worker && worker->pid != leader_pid) {
                 //request goes to another worker
-                worker->socket->send(zmq::buffer(msg), zmq::send_flags::none);
-                zmq::recv_result_t res = worker->socket->recv(request, zmq::recv_flags::none);
+                worker->send(msg);
+                worker->recv(request);
                 reply = request.to_string();
             } else { 
                 //request can be fuffiled by leader

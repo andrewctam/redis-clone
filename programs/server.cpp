@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    usleep(1000 * 50);
+    usleep(1000 * 200);
     
     //start a client
     execlp("./client", "./client", "-p", c_port, nullptr);

@@ -7,26 +7,45 @@ int hash_function(const std::string &str) {
 
 ServerNode::ServerNode(std::string pid, std::string endpoint, bool is_leader) :
     pid(pid), 
-    context(new zmq::context_t(1)),
-    socket(new zmq::socket_t(*context, zmq::socket_type::req)),
+    endpoint(endpoint),
     hash(hash_function(pid + endpoint)),
     is_leader(is_leader) {
 
-    socket->connect(endpoint);
+    if (std::to_string(getpid()) != pid) {
+        context = new zmq::context_t(1);
+        socket = new zmq::socket_t(*context, zmq::socket_type::req);
+        socket->connect(endpoint);
+    } else {
+        context = nullptr;
+        socket = nullptr;
+    }
 }
 
 ServerNode::~ServerNode() {
-    delete socket;
-    delete context;
+    if (socket) {
+        delete socket;
+    }
+    
+    if (context) {
+        delete context;
+    }
 }
 
-
-ConsistentHashing::ConsistentHashing(bool init_dealer) {
-    dealer_active = false;
-
-    if (init_dealer) {        
-        set_up_dealer();
+bool ServerNode::send(const std::string &str) {
+    if (!socket) {
+        return false;
     }
+
+    socket->send(zmq::buffer(str), zmq::send_flags::none);
+    return true;
+}
+
+bool ServerNode::recv(zmq::message_t &request) {
+    if (!socket) {
+        return false;
+    }
+    zmq::recv_result_t res = socket->recv(request, zmq::recv_flags::none);
+    return true;
 }
 
 ConsistentHashing::~ConsistentHashing() {
@@ -43,9 +62,12 @@ void ConsistentHashing::set_up_dealer() {
         dealer_socket = new zmq::socket_t(*dealer_context, zmq::socket_type::dealer); 
         dealer_socket->set(zmq::sockopt::rcvtimeo, 200);
 
+        std::string my_pid = std::to_string(getpid());
         for (auto it = connected.begin(); it != connected.end(); ++it) {
-            std::string endpoint = (*it)->socket->get(zmq::sockopt::last_endpoint);
-            dealer_socket->connect(endpoint);
+            if ((*it)->pid != my_pid) {
+                dealer_socket->connect((*it)->endpoint);
+            }
+            
         }
     }
 }
@@ -54,7 +76,7 @@ ServerNode *ConsistentHashing::add(std::string pid, std::string endpoint, bool i
     ServerNode *node = new ServerNode(pid, endpoint, is_leader); 
     connected.insert(node);
 
-    if (dealer_active) {
+    if (dealer_active && std::to_string(getpid()) != pid) {
         dealer_socket->connect(endpoint);
     }
 
@@ -84,7 +106,7 @@ void ConsistentHashing::update(std::string internal_string) {
 
         if (!existing ||
             existing->pid != pid ||
-            existing->socket->get(zmq::sockopt::last_endpoint) != endpoint) {
+            existing->endpoint != endpoint) {
 
             nodes.insert(add(pid, endpoint, leader));
         } else {
@@ -153,7 +175,7 @@ std::string ConsistentHashing::to_internal_string() {
             ss << "*";
         }
 
-        ss << node->pid << "," << node->socket->get(zmq::sockopt::last_endpoint) << " ";
+        ss << node->pid << "," << node->endpoint << " ";
     }
 
     return ss.str();

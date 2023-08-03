@@ -10,7 +10,7 @@ LRUCache cache {};
 int secs_offset = 0;
 int client_port = 5555;
 int internal_port = -1;
-ConsistentHashing ring {false};
+ConsistentHashing ring;
 
 class CommandTests: public ::testing::Test {
 protected:

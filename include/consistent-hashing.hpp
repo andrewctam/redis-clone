@@ -8,15 +8,22 @@
 int hash_function(const std::string &str);
 
 class ServerNode {
-public:
-    std::string pid;
+private:
     zmq::context_t *context;
     zmq::socket_t *socket;
+    
+public:
+    std::string pid;
+    std::string endpoint;
+    
     int hash;
     bool is_leader;
 
     ServerNode(std::string pid, std::string endpoint, bool is_leader);
     ~ServerNode();
+
+    bool send(const std::string &str);
+    bool recv(zmq::message_t &request);
 };
 
 
@@ -39,12 +46,12 @@ struct Compare {
 class ConsistentHashing {
 private:
     std::set<ServerNode*, Compare> connected;
-    bool dealer_active;
+    bool dealer_active = false;
 public:
     zmq::context_t *dealer_context;
     zmq::socket_t *dealer_socket;
 
-    ConsistentHashing(bool init_dealer = false);
+    ConsistentHashing() {}
     ~ConsistentHashing();
     
     void set_up_dealer();
