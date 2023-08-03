@@ -47,7 +47,8 @@ namespace cmd {
 
     bool concatAll(const std::string& str) {
          std::unordered_set<std::string> cmds = {
-            "keys"
+            "keys",
+            "dist"
         };
         return cmds.find(str) != cmds.end();
     }
@@ -181,7 +182,7 @@ std::string Command::get() {
         return "(NIL)";
     }
 
-    return entry->to_string() + "";
+    return entry->to_string();
 }
 
 std::string Command::set() {
@@ -219,7 +220,7 @@ std::string Command::del() {
         }
     }
 
-    return std::to_string(count) + "";
+    return std::to_string(count);
 }
 
 std::string Command::exists() {    
@@ -230,11 +231,16 @@ std::string Command::exists() {
         }
     }
 
-    return std::to_string(count) + "";
+    return std::to_string(count);
 }
 
 std::string Command::dbsize() {    
-    return std::to_string(cache.size()) + "";
+    return std::to_string(cache.size());
+}
+
+std::string Command::dist() {
+    // same as dbsize but strs are concatenated instead of added
+    return dbsize();
 }
 
 std::string Command::type() {    
@@ -270,7 +276,7 @@ std::string Command::expire() {
     }
     
     bool res = cache.set_expire(args[1], time);
-    return res ? std::to_string(time) + "": "FAILURE";
+    return res ? std::to_string(time) : "FAILURE";
 }
 
 std::string Command::expireat() {
@@ -327,7 +333,7 @@ std::string Command::incrementer() {
     BaseEntry *entry = cache.get(args[1]);
     if (!entry) {
         cache.add(args[1], new IntEntry(change));
-        return std::to_string(change) + "";
+        return std::to_string(change);
     }
 
     if (entry->get_type() != EntryType::integer) {
@@ -337,7 +343,7 @@ std::string Command::incrementer() {
     IntEntry *val = dynamic_cast<IntEntry *>(entry);
     val->value += change;
 
-    return std::to_string(val->value) + "";
+    return std::to_string(val->value);
 }
 
 
@@ -370,7 +376,7 @@ std::string Command::list_push() {
         }
     }
 
-    return std::to_string(list->get_size()) + "";
+    return std::to_string(list->get_size());
 }
 
 
@@ -518,7 +524,7 @@ std::string Command::llen() {
     ListEntry *list_entry = dynamic_cast<ListEntry*>(entry);
     LinkedList *list = list_entry->list;
 
-    return std::to_string(list->get_size()) + "";
+    return std::to_string(list->get_size());
 }
 
 std::string Command::hash() {

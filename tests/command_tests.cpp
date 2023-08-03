@@ -42,6 +42,7 @@ TEST_F(CommandTests, Sets) {
     EXPECT_EQ(cmd::addAll("get"), false);
 
     EXPECT_EQ(cmd::concatAll("keys"), true);
+    EXPECT_EQ(cmd::concatAll("dist"), false);
     EXPECT_EQ(cmd::concatAll("get"), false);
 
     EXPECT_EQ(cmd::askAll("flushall"), true);
@@ -120,6 +121,9 @@ TEST_F(CommandTests, Keys) {
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "2");
+
+    Command dist { "dist" };
+    EXPECT_EQ(dist.parse_cmd(), "2");
 }
 
 TEST_F(CommandTests, Benchmark) {
@@ -217,6 +221,9 @@ TEST_F(CommandTests, Del) {
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "0");
+
+    Command dist { "dist" };
+    EXPECT_EQ(dist.parse_cmd(), "0");
 }
 
 TEST_F(CommandTests, Exists) {
@@ -667,3 +674,4 @@ TEST_F(CommandTests, Hash) {
     Command hash3 { "hash abc123" };
     EXPECT_EQ(hash3.parse_cmd(), "249");
 }
+

@@ -53,6 +53,7 @@ private:
     std::string lrange();
     std::string llen();
     std::string hash();
+    std::string dist();
 
     std::map<
         std::string, 
@@ -86,7 +87,7 @@ private:
         {"lrange", std::bind(&Command::lrange, this)},
         {"llen", std::bind(&Command::llen, this)},
         {"hash", std::bind(&Command::hash, this)},
-
+        {"dist", std::bind(&Command::dist, this)}
     };
 
 

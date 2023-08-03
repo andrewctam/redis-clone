@@ -19,6 +19,7 @@
     - Performs num commands and returns the time taken in ms.
 - `hash key`
     - Returns the hash value of a key.
+    
 ## Nodes
 - `nodes`
     - List all nodes with their pid and leader status.
@@ -28,7 +29,9 @@
     - Kills the node with the specified pid.
 - `shutdown`
     - Shuts down the server and stops all nodes.
-
+- `dist`
+    - Returns the distribution of keys between nodes.
+    
 ## Basic Cache
 - `get key` 
     - Returns the value of key, or (NIL) if no value is found.
