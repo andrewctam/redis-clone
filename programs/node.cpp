@@ -1,5 +1,6 @@
 #include <getopt.h>
 
+#include "leader.hpp"
 #include "worker.hpp"
 #include "globals.hpp"
 #include "consistent-hashing.hpp"
@@ -10,19 +11,23 @@ LRUCache cache {};
 int secs_offset = 0;
 int client_port = 5555;
 int internal_port = -1;
-ConsistentHashing ring {false};
+ConsistentHashing ring;
 
 int main(int argc, char *argv[]) {
-    
+    bool leader = false;
+    bool worker = false;
+
     while (true) {
         int option_index = 0;
         static struct option long_options[] = {
             {"help", no_argument, 0, 'h'},
             {"client-port", required_argument, 0, 'c'},
             {"internal-port", required_argument, 0, 'i'},
+            {"worker", no_argument, 0, 'w'},
+            {"leader", no_argument, 0, 'l'},
             {0, 0, 0, 0}
         };
-        int c = getopt_long(argc, argv, "-hc:i:", long_options, &option_index);
+        int c = getopt_long(argc, argv, "-hc:i:wl", long_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -30,10 +35,17 @@ int main(int argc, char *argv[]) {
         switch(c) {
             case 'h':
                 std::cerr 
-                    << "Redis clone worker node. Usage: ./worker_node [OPTIONS]\n"
+                    << "Redis clone node. Usage: ./node [OPTIONS]\n"
+                    << "\n"
+                    << "Creates a worker or leader node connected to the internal port. If -w or -l is not provided, the node will default to a worker node.\n"
+                    << "Worker nodes must be created after a leader node using the same internal port.\n"
+                    << "Worker nodes can be upgraded to a leader node if connection is lost to the leader\n"
+                    << "\n"
                     << "-h, --help: displays this menu!\n"
-                    << "-c, --client-port: port used for client connections. Will be used if this worker node is promoted to a leader. Default is 5555\n"
-                    << "-i, --internal-port: port used by nodes for internal communication. Tries to connect to this port on startup. Default is the client port + 10000"
+                    << "-w, --worker: flag to specify a node is a worker node.\n"
+                    << "-l, --leader: flag to specify a node is a leader node.\n"
+                    << "-c, --client-port: port used for client connections. Default is 5555\n"
+                    << "-i, --internal-port: port used by nodes for internal communication. Default is the client port + 10000"
                     << std::endl;
 
                 return EXIT_SUCCESS;
@@ -59,8 +71,23 @@ int main(int argc, char *argv[]) {
                     return EXIT_FAILURE;
                 }
                 break;
+            case 'w':
+                if (leader) {
+                    std::cerr << "Can not be both a leader and worker!" << std::endl;
+                    return EXIT_FAILURE;
+                }
+
+                worker = true;
+                break;
+            case 'l':
+                if (worker) {
+                    std::cerr << "Can not be both a leader and worker!" << std::endl;
+                    return EXIT_FAILURE;
+                }
+
+                leader = true;
+                break;
             default:
-                std::cerr << "Unknown option: " << optarg << std::endl;
                 return EXIT_FAILURE;
         }
     }
@@ -69,6 +96,12 @@ int main(int argc, char *argv[]) {
         internal_port = client_port + 10000;
     }
 
-    start_worker();
+    if (leader) {
+        ring.set_up_dealer();
+        start_leader();
+    } else {
+        start_worker();
+    } 
+
     return EXIT_SUCCESS;
 }

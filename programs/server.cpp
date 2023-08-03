@@ -28,6 +28,10 @@ int main(int argc, char *argv[]) {
             case 'h':
                 std::cerr 
                     << "Redis clone server. Usage: ./server [OPTIONS]\n"
+                    << "\n"
+                    << "Creates the specified number of nodes and a client.\n"
+                    << "If this server is terminated, all the nodes will also be terminated for quick clean up.\n"
+                    << "\n"
                     << "-h, --help: displays this menu!\n"
                     << "-c, --client-port: port used for client connections. Default is 5555\n"
                     << "-i, --internal-port: port used by nodes for internal communication. Default is the client port + 10000\n"
@@ -77,7 +81,7 @@ int main(int argc, char *argv[]) {
     if (internal_port == -1) {
         internal_port = client_port + 10000;
     }
-    
+
     int ppid = getpid();
     char i_port[100], c_port[100];
     snprintf(i_port, sizeof(i_port), "%d", internal_port);
@@ -91,7 +95,7 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
             }
 
-            execlp("./worker_node", "./worker_node", "-i", i_port, "-c", c_port, nullptr);
+            execlp("./node", "./node", "-w", "-i", i_port, "-c", c_port, nullptr);
             
             std::cerr << "Failed to start worker node. Make sure you are in ./build/programs before executing ./server" << std::endl;
             return EXIT_FAILURE;
@@ -106,12 +110,14 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        execlp("./leader_node", "./leader_node", "-i", i_port, "-c", c_port, nullptr);
+        execlp("./node", "./node", "-l", "-i", i_port, "-c", c_port, nullptr);
 
         std::cerr << "Failed to start leader node. Make sure you are in ./build/programs before executing ./server" << std::endl;
         return EXIT_FAILURE;
     }
 
+    usleep(1000 * 50);
+    
     //start a client
     execlp("./client", "./client", "-p", c_port, nullptr);
 

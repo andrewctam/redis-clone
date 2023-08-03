@@ -24,6 +24,10 @@ int main(int argc, char *argv[]) {
             case 'h':
                 std::cout 
                     << "Redis clone client. Usage: ./client [OPTIONS]\n"
+                    << "\n"
+                    << "Connects to a leader node on the specified port.\n"
+                    << "Requests are made to stdin, and responses are sent to stdout.\n"
+                    << "\n"
                     << "-h, --help: displays this menu!\n"
                     << "-p, --port: port used by server for client connections. Default is 5555"
                     << std::endl;

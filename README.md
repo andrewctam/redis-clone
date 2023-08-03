@@ -27,13 +27,12 @@ make
 # Usage
 - If you built this project from source, go to `redis-clone/build/programs`. Otherwise if you downloaded a release, unzip the file, and change to the directory.
 - There should be 4 executables:
-    - `./leader_node` for creating a leader node.
-    - `./worker_node` to creating a worker node.
+    - `./node` to creating a node.
     - `./client` for starting a client.
     - `./server` for starting worker nodes, a leader node, and a client.
-
 - For a quick start, execute `./server` which will create 1 leader node, 3 worker nodes, and a client using fork and execv system calls.
     - Client messages are sent to stdout, while server messages are sent to stderr. If you want to separate the client messages from server messages, redirect stderr such as with `./server 2> file.txt`. 
+- For more information about an executable and the args you can pass, run it with the `--help` flag.
 
 # Commands
 - For a list of commands, see [COMMANDS.md](./COMMANDS.md)
