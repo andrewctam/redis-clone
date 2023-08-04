@@ -211,70 +211,93 @@ TEST(LRUCacheTests, Import) {
     cache.add("key0", new StringEntry("value0"));
     cache.add("key1", new StringEntry("1"));
 
-    std::string str = 
-    "key1\n"
-    "value1\n"
-    "key2\n"
-    "value2\n"
-    "key3\n"
-    "value3\n";
-
-    EXPECT_EQ(cache.import(str), true);
-
-    EXPECT_EQ(cache.size(), 4);
-    EXPECT_EQ(cache.get("key0")->to_string(), "value0");
-    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
-    EXPECT_EQ(cache.get("key2")->to_string(), "value2");
-    EXPECT_EQ(cache.get("key3")->to_string(), "value3");
-}
-
-
-TEST(LRUCacheTests, IncompleteImport) {
-    LRUCache cache { 5, 5 };
-
-    std::string str = 
-    "key1\n"
-    "value1\n"
-    "key2\n";
-
-    EXPECT_EQ(cache.import(str), false);
-
-    EXPECT_EQ(cache.size(), 1);
-    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
-}
-
-
-TEST(LRUCacheTests, Extract) {
-    LRUCache cache { 5, 5 };
-
-    std::string str = 
+    std::string import_str = 
     "key1\n"
     "value1\n"
     "key2\n"
     "2\n"
     "key3\n"
     "str 2 3\n";
-    EXPECT_EQ(cache.import(str), true);
-    EXPECT_EQ(cache.size(), 3);
 
-    std::string extracted = cache.extract(361);
-    EXPECT_EQ(extracted.find("key1\nvalue1\n") == std::string::npos, false);
-    EXPECT_EQ(extracted.find("key2\n2\n") == std::string::npos, false);
-    EXPECT_EQ(extracted.find("key3\nstr 2 3\n") == std::string::npos, false);
+    EXPECT_EQ(cache.import(import_str), true);
 
-    LRUCache cache2 { extracted, 5, 5 };;
-    EXPECT_EQ(cache2.size(), 3);
-    
-    EXPECT_EQ(cache2.get("key1")->to_string(), "value1");
-    EXPECT_EQ(cache2.get("key1")->get_type(), EntryType::str);
+    EXPECT_EQ(cache.size(), 4);
+    EXPECT_EQ(cache.get("key0")->to_string(), "value0");
+    EXPECT_EQ(cache.get("key0")->get_type(), EntryType::str);
 
-    EXPECT_EQ(cache2.get("key2")->to_string(), "2");
-    EXPECT_EQ(cache2.get("key2")->get_type(), EntryType::integer);
+    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
+    EXPECT_EQ(cache.get("key1")->get_type(), EntryType::str);
 
-    EXPECT_EQ(cache2.get("key3")->to_string(), "str 2 3");
-    EXPECT_EQ(cache2.get("key3")->get_type(), EntryType::list);
+    EXPECT_EQ(cache.get("key2")->to_string(), "2");
+    EXPECT_EQ(cache.get("key2")->get_type(), EntryType::integer);
+
+    EXPECT_EQ(cache.get("key3")->to_string(), "str 2 3");
+    EXPECT_EQ(cache.get("key3")->get_type(), EntryType::list);
 }
 
 
+TEST(LRUCacheTests, IncompleteImport) {
+    LRUCache cache { 5, 5 };
+
+    std::string import_str = 
+    "key1\n"
+    "value1\n"
+    "key2\n";
+
+    EXPECT_EQ(cache.import(import_str), false);
+
+    EXPECT_EQ(cache.size(), 1);
+    EXPECT_EQ(cache.get("key1")->to_string(), "value1");
+    EXPECT_EQ(cache.get("key2"), nullptr);
+}
 
 
+TEST(LRUCacheTests, Extract) {
+    LRUCache cache { 10, 10 };
+
+    std::string import_str = 
+    "key1\n" // 322
+    "1\n"
+    "key2\n" // 316
+    "2\n"
+    "key3\n" // 18
+    "3\n"
+    "key4\n" // 38
+    "4\n" 
+    "key5\n" // 56
+    "5\n"; 
+
+    EXPECT_EQ(cache.import(import_str), true);
+    EXPECT_EQ(cache.size(), 5);
+
+    std::vector<std::string> strs = cache.extract(0, { 20, 40, 320 });
+    EXPECT_EQ(strs.size(), 3);
+    EXPECT_EQ(strs[0], "key3\n3\n");
+    EXPECT_EQ(strs[1], "key4\n4\n");
+    EXPECT_TRUE(strs[2] == "key2\n2\nkey5\n5\n" || strs[2] == "key5\n5\nkey2\n2\n");
+
+    strs = cache.extract(20, { 40, 320 });
+    EXPECT_EQ(strs.size(), 2);
+    EXPECT_EQ(strs[0], "key4\n4\n");
+    EXPECT_TRUE(strs[1] == "key2\n2\nkey5\n5\n" || strs[1] == "key5\n5\nkey2\n2\n");
+
+    strs = cache.extract(-322, { 20, 56 });
+    EXPECT_EQ(strs.size(), 2);
+    EXPECT_TRUE(strs[0] == "key1\n1\nkey3\n3\n" || strs[0] == "key3\n3\nkey1\n1\n");
+    EXPECT_EQ(strs[1], "key4\n4\n");
+
+    strs = cache.extract(0, { 18 });
+    EXPECT_EQ(strs.size(), 0);
+
+    strs = cache.extract(0, { 38 });
+    EXPECT_EQ(strs.size(), 1);
+    EXPECT_EQ(strs[0], "key3\n3\n");
+
+    strs = cache.extract(0, { 360 });
+    EXPECT_EQ(strs.size(), 1);
+    EXPECT_EQ(strs[0].size(), import_str.size());
+
+    strs = cache.extract(-1, { 0 });
+    EXPECT_EQ(strs.size(), 1);
+    EXPECT_EQ(strs[0].size(), import_str.size());
+}

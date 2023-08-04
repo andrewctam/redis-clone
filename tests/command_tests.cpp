@@ -42,7 +42,7 @@ TEST_F(CommandTests, Sets) {
     EXPECT_EQ(cmd::addAll("get"), false);
 
     EXPECT_EQ(cmd::concatAll("keys"), true);
-    EXPECT_EQ(cmd::concatAll("dist"), false);
+    EXPECT_EQ(cmd::concatAll("dist"), true);
     EXPECT_EQ(cmd::concatAll("get"), false);
 
     EXPECT_EQ(cmd::askAll("flushall"), true);

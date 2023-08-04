@@ -136,30 +136,58 @@ void LRUCache::clear() {
     keyMap.clear();
 }
 
+bool in_range(int val, int low, int high) {
+    if (low < 0) {
+        return -low <= val || val < high; 
+    } else {
+        return low <= val && val < high;
+    }
+}
 
-std::string LRUCache::extract(int upper_bound) {
-    std::stringstream ss;
-    std::vector<std::string> remove_keys;
+std::vector<std::string> LRUCache::extract(int start, std::vector<int> upper_bounds) {
+    std::vector<std::stringstream *> import_strs;
+    int n = upper_bounds.size();
+    for (int i = 0; i < n; i++) {
+        import_strs.emplace_back( new std::stringstream() );
+    }
 
     for (auto it = keyMap.begin(); it != keyMap.end(); it++) {
         std::string key = it->first;
-        if (hash_function(key) < upper_bound) {
-            // add this key/value to the string
-            BaseEntry *entry = it->second->value;
-            if (entry->get_type() == EntryType::cache) {
-                CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
-                ss << key << "\n" << cache_entry->cached->to_string() << "\n";
-            }
+        int hash = hash_function(key);
 
-            //move node for LRU deletion
-            Node *node = it->second;
-            it->second = entries.add_front(entries.remove_node(node));
+        for (int i = 0; i < n; i++) {
+            int lower = (i == 0) ? start : upper_bounds[i - 1];
+
+            if (in_range(hash, lower, upper_bounds[i])) {
+                // add this key/value to the string
+                BaseEntry *entry = it->second->value;
+                if (entry->get_type() == EntryType::cache) {
+                    std::stringstream *ss = import_strs[i];
+                    
+                    CacheEntry *cache_entry = dynamic_cast<CacheEntry*>(entry);
+                    *ss << key << "\n" << cache_entry->cached->to_string() << "\n";
+                }
+
+                //move node for LRU deletion
+                Node *node = it->second;
+                it->second = entries.add_front(entries.remove_node(node));
+                break;
+            }
         }
+
+    }
+   
+    std::vector<std::string> strs;
+    for (auto &ss : import_strs) {
+        std::string str = ss->str();
+        if (str.size() > 0) {
+            strs.emplace_back(str);
+        }
+        
+        delete ss;
     }
 
-   
-
-    return ss.str();
+    return strs;
 }
 
 bool LRUCache::import(const std::string& import_str) {
