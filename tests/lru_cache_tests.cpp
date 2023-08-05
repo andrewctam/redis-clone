@@ -289,6 +289,9 @@ TEST(LRUCacheTests, Extract) {
     strs = cache.extract(0, { 18 });
     EXPECT_EQ(strs.size(), 0);
 
+    strs = cache.extract(0, {  });
+    EXPECT_EQ(strs.size(), 0);
+
     strs = cache.extract(0, { 38 });
     EXPECT_EQ(strs.size(), 1);
     EXPECT_EQ(strs[0], "key3\n3\n");
