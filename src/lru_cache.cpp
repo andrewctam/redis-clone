@@ -144,10 +144,14 @@ bool in_range(int val, int low, int high) {
     }
 }
 
-std::vector<std::string> LRUCache::extract(int start, std::vector<int> upper_bounds) {
+std::vector<std::string> LRUCache::extract(std::vector<int> upper_bounds) {
+    if (upper_bounds.size() < 2) {
+        return {};
+    }
+
     std::vector<std::stringstream *> import_strs;
     int n = upper_bounds.size();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n - 1; i++) {
         import_strs.emplace_back( new std::stringstream() );
     }
 
@@ -155,10 +159,8 @@ std::vector<std::string> LRUCache::extract(int start, std::vector<int> upper_bou
         std::string key = it->first;
         int hash = hash_function(key);
 
-        for (int i = 0; i < n; i++) {
-            int lower = (i == 0) ? start : upper_bounds[i - 1];
-
-            if (in_range(hash, lower, upper_bounds[i])) {
+        for (int i = 0; i < n - 1; i++) {
+            if (in_range(hash, upper_bounds[i], upper_bounds[i + 1])) {
                 // add this key/value to the string
                 BaseEntry *entry = it->second->value;
                 if (entry->get_type() == EntryType::cache) {
@@ -180,9 +182,7 @@ std::vector<std::string> LRUCache::extract(int start, std::vector<int> upper_bou
     std::vector<std::string> strs;
     for (auto &ss : import_strs) {
         std::string str = ss->str();
-        if (str.size() > 0) {
-            strs.emplace_back(str);
-        }
+        strs.emplace_back(str);
         
         delete ss;
     }

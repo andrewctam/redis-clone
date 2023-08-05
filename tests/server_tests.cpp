@@ -9,28 +9,30 @@
 #include "worker.hpp"
 #include "leader.hpp"
 
+constexpr int END_OF_LINE = -1;
+
 int client_stdin;
 FILE *client_stdout;
 FILE *client_stderr;
 
-// read a line from the fd and compare it to exp
+// read a line from the fd
 // returns an empty string if equal
 // returns the read string if not equal
-std::string check_str(FILE *file, char const *exp, bool end_of_line = true) {
+std::string check_str(FILE *file, int num) {
     int MAX_LEN = 512;
     char buf[MAX_LEN];
-    int len = strlen(exp);
+    
+    if (num == -1) {
+        num = MAX_LEN - 1;
+    }
 
-    if (len >= MAX_LEN) {
+    if (num >= MAX_LEN) {
         return "String too long. Increase MAX_LEN.";
     }
 
-    fgets(buf, end_of_line ? MAX_LEN : len + 1, file);
-    if (strncmp(buf, exp, len) == 0) {
-        return "";
-    }
+    fgets(buf, num, file);
 
-    *(buf + len) = '\0';
+    *(buf + num) = '\0';
     return std::string(buf);
 }
 
@@ -77,21 +79,39 @@ TEST(ServerTests, SetUp) {
     }
 }
 
-TEST(ServerTests, StartUp) {    
-    EXPECT_EQ(check_str(client_stderr, "Started server with leader node with pid"), "");
-    EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
-    EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
-    EXPECT_EQ(check_str(client_stderr, "Connected to worker node with pid:"), "");
-    EXPECT_EQ(check_str(client_stdout, "Client started!"), "");
-    EXPECT_EQ(check_str(client_stdout, "> ", false), "");
+TEST(ServerTests, StartUp) {
+    std::string leader_start = "Started leader node with pid";
+    std::string worker_start = "Connected to worker node with pid:";
+
+    int leader_count = 0;
+    int worker_count = 0;
+
+    for (int i = 0; i < 4; i++) {
+        std::string line = check_str(client_stderr, END_OF_LINE);
+
+        if (line.compare(0, leader_start.size(), leader_start) == 0) {
+            leader_count++;
+        } else if (line.compare(0, worker_start.size(), worker_start) == 0) {
+            worker_count++;
+        } else {
+            std::cout << line << std::endl;
+            FAIL();
+        }
+    }
+
+    EXPECT_EQ(leader_count, 1);
+    EXPECT_EQ(worker_count, 3);
+
+    EXPECT_EQ(check_str(client_stdout, END_OF_LINE), "Client started!\n");
+    EXPECT_EQ(check_str(client_stdout, 3), "> ");
 }
 
 TEST(ServerTests, BasicCache) {    
     EXPECT_GT(send_str("set a 1\n"), 0);
-    EXPECT_EQ(check_str(client_stdout, "SUCCESS"), "");
-    EXPECT_EQ(check_str(client_stdout, "> ", false), "");
+    EXPECT_EQ(check_str(client_stdout, END_OF_LINE), "SUCCESS\n");
+    EXPECT_EQ(check_str(client_stdout, 3), "> ");
 
     EXPECT_GT(send_str("get a\n"), 0);
-    EXPECT_EQ(check_str(client_stdout, "1"), "");
-    EXPECT_EQ(check_str(client_stdout, "> ", false), "");
+    EXPECT_EQ(check_str(client_stdout, END_OF_LINE), "1\n");
+    EXPECT_EQ(check_str(client_stdout, 3), "> ");
 }

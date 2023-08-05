@@ -41,10 +41,10 @@ public:
     void clear();
 
     // returns import_strs for all entries grouped based on the specified bounds: [prev_bound, cur_bound)
-    // for example: given [50, 100, 200] and start = 0, partitions the cache into hashes of values [0, 50), [50, 100), [100, 200). Values >= 200 are ignored. 
-    // If start is negative, it will wrap around. e.g. start = -300, then that first bound would be [300, 360) U [0, 50).
     // also moves all grouped entries to the start of the LRU queue for imminent deletion
-    std::vector<std::string> extract(int start, std::vector<int> upper_bounds);
+    // for example: given [50, 100, 200] and start = 0, partitions the cache into hashes of values [50, 100), [100, 200).
+    // If an element is negative, it will wrap around. e.g.[-300, 50, 100] -> the first bound would be [300, 360) U [0, 50).
+    std::vector<std::string> extract(std::vector<int> upper_bounds);
 
     // import entries from another LRU cache from extract()
     bool import(const std::string& import_str);

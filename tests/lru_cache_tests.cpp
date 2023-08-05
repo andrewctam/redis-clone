@@ -270,37 +270,41 @@ TEST(LRUCacheTests, Extract) {
     EXPECT_EQ(cache.import(import_str), true);
     EXPECT_EQ(cache.size(), 5);
 
-    std::vector<std::string> strs = cache.extract(0, { 20, 40, 320 });
+    std::vector<std::string> strs = cache.extract({ 0, 20, 40, 320 });
     EXPECT_EQ(strs.size(), 3);
     EXPECT_EQ(strs[0], "key3\n3\n");
     EXPECT_EQ(strs[1], "key4\n4\n");
     EXPECT_TRUE(strs[2] == "key2\n2\nkey5\n5\n" || strs[2] == "key5\n5\nkey2\n2\n");
 
-    strs = cache.extract(20, { 40, 320 });
+    strs = cache.extract({ 20, 40, 320 });
     EXPECT_EQ(strs.size(), 2);
     EXPECT_EQ(strs[0], "key4\n4\n");
     EXPECT_TRUE(strs[1] == "key2\n2\nkey5\n5\n" || strs[1] == "key5\n5\nkey2\n2\n");
 
-    strs = cache.extract(-322, { 20, 56 });
+    strs = cache.extract({ -322, 20, 56 });
     EXPECT_EQ(strs.size(), 2);
     EXPECT_TRUE(strs[0] == "key1\n1\nkey3\n3\n" || strs[0] == "key3\n3\nkey1\n1\n");
     EXPECT_EQ(strs[1], "key4\n4\n");
 
-    strs = cache.extract(0, { 18 });
+    strs = cache.extract({ 0, 18 });
+    EXPECT_EQ(strs.size(), 1);
+    EXPECT_EQ(strs[0], "");
+
+    strs = cache.extract({ 0 });
     EXPECT_EQ(strs.size(), 0);
 
-    strs = cache.extract(0, {  });
+    strs = cache.extract({ });
     EXPECT_EQ(strs.size(), 0);
 
-    strs = cache.extract(0, { 38 });
+    strs = cache.extract({ 0, 38 });
     EXPECT_EQ(strs.size(), 1);
     EXPECT_EQ(strs[0], "key3\n3\n");
 
-    strs = cache.extract(0, { 360 });
+    strs = cache.extract({ 0, 360 });
     EXPECT_EQ(strs.size(), 1);
     EXPECT_EQ(strs[0].size(), import_str.size());
 
-    strs = cache.extract(-1, { 0 });
+    strs = cache.extract({ -1, 0 });
     EXPECT_EQ(strs.size(), 1);
     EXPECT_EQ(strs[0].size(), import_str.size());
 }

@@ -69,7 +69,7 @@ void handle_client_requests() {
     zmq::socket_t client_socket{client_context, zmq::socket_type::rep};
     client_socket.bind("tcp://*:" + std::to_string(client_port));
 
-    std::cerr << "Started server with leader node with pid " << leader_pid << " on " 
+    std::cerr << "Started leader node with pid " << leader_pid << " on " 
         << client_socket.get(zmq::sockopt::last_endpoint)
         << std::endl;
 

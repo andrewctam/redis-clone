@@ -31,6 +31,10 @@ struct Compare {
     using is_transparent = void;
 
     bool operator()(ServerNode* const &node1, ServerNode* const &node2) const {
+        if (node1->hash == node2->hash) {
+            return node1->pid < node2->pid;
+        }
+        
         return node1->hash < node2->hash;
     }
 
@@ -47,11 +51,13 @@ class ConsistentHashing {
 private:
     std::set<ServerNode*, Compare> connected;
     bool dealer_active = false;
+    std::string this_pid;
 public:
     zmq::context_t *dealer_context;
     zmq::socket_t *dealer_socket;
 
-    ConsistentHashing() {}
+    // param mainly used to pass in controlled var for test cases, otherwise just use default
+    ConsistentHashing(std::string pid = std::to_string(getpid()));
     ~ConsistentHashing();
     
     void set_up_dealer();

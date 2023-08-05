@@ -87,6 +87,20 @@ int main(int argc, char *argv[]) {
     snprintf(i_port, sizeof(i_port), "%d", internal_port);
     snprintf(c_port, sizeof(c_port), "%d", client_port);
 
+    
+    // leader node
+    int pid = fork();
+    if (pid == 0) { //child
+        if (prctl(PR_SET_PDEATHSIG, SIGINT) == -1 || getppid() != ppid) {
+            exit(EXIT_FAILURE);
+        }
+
+        execlp("./node", "./node", "-l", "-i", i_port, "-c", c_port, nullptr);
+
+        std::cerr << "Failed to start leader node. Make sure you are in ./build/programs before executing ./server" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // n - 1 worker nodes
     for (int i = 0; i < nodes - 1; i++) {
         int pid = fork();
@@ -100,20 +114,6 @@ int main(int argc, char *argv[]) {
             std::cerr << "Failed to start worker node. Make sure you are in ./build/programs before executing ./server" << std::endl;
             return EXIT_FAILURE;
         } 
-    }
-
- 
-    // leader node
-    int pid = fork();
-    if (pid == 0) { //child
-        if (prctl(PR_SET_PDEATHSIG, SIGINT) == -1 || getppid() != ppid) {
-            exit(EXIT_FAILURE);
-        }
-
-        execlp("./node", "./node", "-l", "-i", i_port, "-c", c_port, nullptr);
-
-        std::cerr << "Failed to start leader node. Make sure you are in ./build/programs before executing ./server" << std::endl;
-        return EXIT_FAILURE;
     }
 
     usleep(1000 * 200);
