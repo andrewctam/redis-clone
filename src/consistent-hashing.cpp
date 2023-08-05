@@ -239,12 +239,6 @@ void ConsistentHashing::update(std::string internal_string) {
         if (upper_bounds.size() > 0) {
             upper_bounds.emplace_back(immediate_upper->hash);
 
-            int lower = this_node->hash;
-            if (wrap_around) {
-                ServerNode *last = *(--connected.end());
-                lower = -(last->hash);
-            }
-
             //extract from LRU cache
             std::vector<std::string> import_strs = cache.extract(upper_bounds);
             if (import_strs.size() != nodes_to_update.size()) {

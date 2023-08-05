@@ -137,8 +137,8 @@ void LRUCache::clear() {
 }
 
 bool in_range(int val, int low, int high) {
-    if (low < 0) {
-        return -low <= val || val < high; 
+    if (high < low) { //wrap around
+        return low <= val || val < high; 
     } else {
         return low <= val && val < high;
     }

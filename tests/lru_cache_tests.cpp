@@ -281,10 +281,16 @@ TEST(LRUCacheTests, Extract) {
     EXPECT_EQ(strs[0], "key4\n4\n");
     EXPECT_TRUE(strs[1] == "key2\n2\nkey5\n5\n" || strs[1] == "key5\n5\nkey2\n2\n");
 
-    strs = cache.extract({ -322, 20, 56 });
+    strs = cache.extract({ 322, 20, 56 });
     EXPECT_EQ(strs.size(), 2);
     EXPECT_TRUE(strs[0] == "key1\n1\nkey3\n3\n" || strs[0] == "key3\n3\nkey1\n1\n");
     EXPECT_EQ(strs[1], "key4\n4\n");
+
+    strs = cache.extract({ 310, 322, 20, 56 });
+    EXPECT_EQ(strs.size(), 3);
+    EXPECT_TRUE(strs[0] == "key2\n2\n");
+    EXPECT_TRUE(strs[1] == "key1\n1\nkey3\n3\n" || strs[1] == "key3\n3\nkey1\n1\n");
+    EXPECT_EQ(strs[2], "key4\n4\n");
 
     strs = cache.extract({ 0, 18 });
     EXPECT_EQ(strs.size(), 1);
@@ -304,7 +310,4 @@ TEST(LRUCacheTests, Extract) {
     EXPECT_EQ(strs.size(), 1);
     EXPECT_EQ(strs[0].size(), import_str.size());
 
-    strs = cache.extract({ -1, 0 });
-    EXPECT_EQ(strs.size(), 1);
-    EXPECT_EQ(strs[0].size(), import_str.size());
 }
