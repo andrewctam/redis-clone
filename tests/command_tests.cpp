@@ -121,9 +121,6 @@ TEST_F(CommandTests, Keys) {
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "2");
-
-    Command dist { "dist" };
-    EXPECT_EQ(dist.parse_cmd(), "2");
 }
 
 TEST_F(CommandTests, Benchmark) {
@@ -221,9 +218,34 @@ TEST_F(CommandTests, Del) {
 
     Command dbsize { "dbsize" };
     EXPECT_EQ(dbsize.parse_cmd(), "0");
+}
 
+
+TEST_F(CommandTests, Dist) {
+    Command set_a { "set a 1" };
+    EXPECT_EQ(set_a.parse_cmd(), "SUCCESS");
+
+    Command set_b { "set b 2" };
+    EXPECT_EQ(set_b.parse_cmd(), "SUCCESS");
+
+    Command set_c { "set c 3" };
+    EXPECT_EQ(set_c.parse_cmd(), "SUCCESS");
+
+    std::string start = "[node " + std::to_string(getpid());
     Command dist { "dist" };
-    EXPECT_EQ(dist.parse_cmd(), "0");
+    EXPECT_EQ(dist.parse_cmd(), start + ": 3]");
+
+    Command remove_some { "del a b"};
+    EXPECT_EQ(remove_some.parse_cmd(), "2");
+
+    Command dist2 { "dist" };
+    EXPECT_EQ(dist2.parse_cmd(), start + ": 1]");
+
+    Command remove_last { "del c"};
+    EXPECT_EQ(remove_last.parse_cmd(), "1");
+
+    Command dist3 { "dist" };
+    EXPECT_EQ(dist3.parse_cmd(), start + ": 0]");
 }
 
 TEST_F(CommandTests, Exists) {

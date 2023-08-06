@@ -10,6 +10,7 @@
 #include "unix_times.hpp"
 #include "consistent-hashing.hpp"
 #include "leader.hpp"
+#include "worker.hpp"
 
 using namespace std::chrono_literals;
 
@@ -31,31 +32,68 @@ void handle_internal_requests() {
     internal_socket.set(zmq::sockopt::rcvtimeo, 200);
     ring.add(leader_pid, internal_socket.get(zmq::sockopt::last_endpoint), true);
 
-    
+    ServerNode *this_node = ring.get_by_pid(leader_pid);
     while (true) {
         try {
             zmq::message_t reply;
             zmq::recv_result_t res = internal_socket.recv(reply, zmq::recv_flags::none);
+            bool new_added = false;
 
+            ServerNode *next_node = nullptr;
+            ServerNode *added = nullptr;
+            bool wrap_around = false;
             // new connections contain a message, pings are empty
             if (reply.to_string().size() > 0) {
+                new_added = true;
                 std::string payload = reply.to_string();
+
+                next_node = ring.get_next_node(this_node);
+                bool wrap_around = ring.is_begin(next_node);
 
                 // add to ring
                 int sep = payload.find(" ");
                 std::string pid = payload.substr(0, sep);
                 std::string endpoint = payload.substr(sep + 1); 
-                ring.add(pid, endpoint, false);
+                added = ring.add(pid, endpoint, false);
 
-                std::cerr << "Connected to worker node with pid: " << pid 
+                std::cout << "Connected to worker node with pid: " << pid 
                     << " and endpoint: " << endpoint << std::endl;
             }
            
-            //send latest connections
-            internal_socket.send(zmq::buffer(ring.to_internal_string()), zmq::send_flags::none);
+            std::string internal = ring.to_internal_string();
+
+            //send latest connections, RING_UPDATE prefix not needed for ping
+            internal_socket.send(zmq::buffer(internal), zmq::send_flags::none);
+
+            if (new_added) {
+                
+                if (next_node && added && ring.get_next_node(this_node) == added) {
+                    ring.send_extracted_cache(this_node, next_node, wrap_around);
+                }
+
+                //ring update needed for request
+                ring.dealer_send(RING_UPDATE + internal);
+                
+                ring.mutex.lock();
+                int count = 1;
+                while (count < ring.size()) {
+                    try {
+                        zmq::message_t dealer_request;
+                        // empty envelope
+                        zmq::recv_result_t res = ring.dealer_socket->recv(dealer_request, zmq::recv_flags::none);
+                        // actual result
+                        res = ring.dealer_socket->recv(dealer_request, zmq::recv_flags::none);
+                        count++;
+                    } catch (...) {
+                        std::cout << "Recv " << count << " out of " << ring.size() << std::endl;
+                    }
+                }
+                ring.mutex.unlock();
+
+            }
         } catch (...) {
             if (ring.size() == 1) { //only master node
-                std::cerr << "Failed to find any child nodes, will only use master node." << std::endl;
+                std::cout << "Failed to find any child nodes, will only use master node." << std::endl;
             }
         }
     }
@@ -69,7 +107,7 @@ void handle_client_requests() {
     zmq::socket_t client_socket{client_context, zmq::socket_type::rep};
     client_socket.bind("tcp://*:" + std::to_string(client_port));
 
-    std::cerr << "Started leader node with pid " << leader_pid << " on " 
+    std::cout << "Started leader node with pid " << leader_pid << " on " 
         << client_socket.get(zmq::sockopt::last_endpoint)
         << std::endl;
 
@@ -81,7 +119,7 @@ void handle_client_requests() {
         std::string msg = request.to_string();
 
         if (monitoring) {
-            std::cerr << msg << std::endl; 
+            std::cout << msg << std::endl; 
         }
         
         // does this command require asking all the nodes?
@@ -100,7 +138,10 @@ void handle_client_requests() {
                 case cmd::NodeCMDType::Create: {
                     int pid = fork();
                     if (pid == 0) {
-                        execlp("./worker_node", "./worker_node", nullptr);
+                        char i_port[100], c_port[100];
+                        snprintf(i_port, sizeof(i_port), "%d", internal_port);
+                        snprintf(c_port, sizeof(c_port), "%d", client_port);
+                        execlp("./node", "./node", "-w", "-i", i_port, "-c", c_port, nullptr);
                         exit(EXIT_FAILURE);
                     } else {
                         reply = "Worker node created with pid " + std::to_string(pid);
@@ -115,7 +156,7 @@ void handle_client_requests() {
                         client_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
                         exit(EXIT_SUCCESS);
                     } else {
-                        node->send(msg);
+                        node->send(NODE_COMMAND + msg);
                         node->recv(request);
                         reply = request.to_string();
                     }
@@ -125,10 +166,8 @@ void handle_client_requests() {
                     break;
             }
         } else if (shouldAddAll || shouldConcatAll || shouldAskAll) {
-            for (int i = 0; i < ring.size() - 1; i++) {
-                ring.dealer_socket->send(zmq::message_t(), zmq::send_flags::sndmore);
-                ring.dealer_socket->send(zmq::buffer(msg), zmq::send_flags::none);
-            }
+            ring.dealer_send(COMMAND + msg);
+
             int sum = 0;
             std::stringstream ss;
 
@@ -140,7 +179,7 @@ void handle_client_requests() {
                 try {
                     sum += stoi(parsed);
                 } catch (...) {
-                    std::cerr << "Error with this cmd: " << msg << std::endl;
+                    std::cout << "Error with this cmd: " << msg << std::endl;
                 }
             } else if (shouldConcatAll) {
                 if (parsed.size() > 0) {
@@ -150,6 +189,7 @@ void handle_client_requests() {
 
             // ask for worker node responses
             // stop after all responses (or timeout)
+            ring.mutex.lock();
             int count = 1;
             while (count < ring.size()) {
                 try {
@@ -164,7 +204,7 @@ void handle_client_requests() {
                         try {
                             sum += stoi(dealer_request.to_string());
                         } catch (...) {
-                            std::cerr << "Error with this cmd: " << msg << std::endl;
+                            std::cout << "Error with this cmd: " << msg << std::endl;
                         }
                     } else if (shouldConcatAll) {
                         std::string str = dealer_request.to_string();
@@ -173,10 +213,10 @@ void handle_client_requests() {
                         }
                     }
                 } catch (...) {
-                    std::cerr << "Recv " << count << " out of " << ring.size() << std::endl;
+                    std::cout << "Recv " << count << " out of " << ring.size() << std::endl;
                 }
             }
-
+            ring.mutex.unlock();
             if (shouldAddAll) {
                 reply = std::to_string(sum);
             } else if (shouldConcatAll) {
@@ -188,7 +228,7 @@ void handle_client_requests() {
             if (key != "") {
                 worker = ring.get(key);
                 if (monitoring) {
-                    std::cerr << key << " [" << hash_function(key)
+                    std::cout << key << " [" << hash_function(key)
                         << "] in to Node [" << worker->hash << "] with pid " 
                         << worker->pid  << std::endl;
                 }
@@ -196,9 +236,12 @@ void handle_client_requests() {
 
             if (worker && worker->pid != leader_pid) {
                 //request goes to another worker
-                worker->send(msg);
-                worker->recv(request);
-                reply = request.to_string();
+                worker->send(COMMAND + msg);
+                if (worker->recv(request)) {
+                    reply = request.to_string();
+                } else {
+                    reply = "FAILED";
+                }
             } else { 
                 //request can be fuffiled by leader
                 Command cmd { request.to_string() };
@@ -209,7 +252,7 @@ void handle_client_requests() {
 
         client_socket.send(zmq::buffer(reply), zmq::send_flags::none);
         if (stop) {
-            std::cerr << "Stopping leader node pid " << leader_pid << std::endl;
+            std::cout << "Stopping leader node pid " << leader_pid << std::endl;
             exit(EXIT_SUCCESS);
         }
     }

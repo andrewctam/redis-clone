@@ -239,8 +239,8 @@ std::string Command::dbsize() {
 }
 
 std::string Command::dist() {
-    // same as dbsize but strs are concatenated instead of added
-    return dbsize();
+    // similar to dbsize but formatted and strs are concatenated instead of added
+    return "[node " + std::to_string(getpid()) + ": " + dbsize() + "]";
 }
 
 std::string Command::type() {    

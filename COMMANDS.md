@@ -14,7 +14,7 @@
     - Returns PONG.
 - `monitor`    
     - Toggles live montioring of commands. Returns ACTIVE or INACTIVE.
-    - Prints commands entered and nodes where keys are stored to stderr.
+    - Prints commands entered and nodes where keys are stored.
 - `benchmark num`
     - Performs num commands and returns the time taken in ms.
 - `hash key`

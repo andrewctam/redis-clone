@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
         switch(c) {
             case 'h':
-                std::cerr 
+                std::cout 
                     << "Redis clone node. Usage: ./node [OPTIONS]\n"
                     << "\n"
                     << "Creates a worker or leader node connected to the internal port. If -w or -l is not provided, the node will default to a worker node.\n"
@@ -51,29 +51,29 @@ int main(int argc, char *argv[]) {
                 return EXIT_SUCCESS;
             case 'c':
                 if (!optarg) {
-                    std::cerr << "Must enter a value" << std::endl;
+                    std::cout << "Must enter a value" << std::endl;
                     return EXIT_FAILURE;
                 }
                 client_port = atoi(optarg);
                 if (client_port <= 0) {
-                    std::cerr << "Client port must be greater than 0!" << std::endl;
+                    std::cout << "Client port must be greater than 0!" << std::endl;
                     return EXIT_FAILURE;
                 }
                 break;
             case 'i':
                 if (!optarg) {
-                    std::cerr << "Must enter a value" << std::endl;
+                    std::cout << "Must enter a value" << std::endl;
                     return EXIT_FAILURE;
                 }
                 internal_port = atoi(optarg);
                 if (internal_port <= 0) {
-                    std::cerr << "Internal port must be greater than 0!" << std::endl;
+                    std::cout << "Internal port must be greater than 0!" << std::endl;
                     return EXIT_FAILURE;
                 }
                 break;
             case 'w':
                 if (leader) {
-                    std::cerr << "Can not be both a leader and worker!" << std::endl;
+                    std::cout << "Can not be both a leader and worker!" << std::endl;
                     return EXIT_FAILURE;
                 }
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 'l':
                 if (worker) {
-                    std::cerr << "Can not be both a leader and worker!" << std::endl;
+                    std::cout << "Can not be both a leader and worker!" << std::endl;
                     return EXIT_FAILURE;
                 }
 

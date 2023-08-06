@@ -17,7 +17,7 @@ std::mutex endpoint_mutex;
 void start_worker() {
     // lock this mutex, will be unlocked once the reqs thread sets endpoint
     endpoint_mutex.lock();
-    std::thread reqs_thread(handle_leader_reqs);
+    std::thread reqs_thread(handle_reqs);
     
     // wait until the reqs thread sets the endpoint
     std::thread ping_thread(handle_pings);
@@ -27,7 +27,7 @@ void start_worker() {
 }
 
 
-void handle_leader_reqs() {
+void handle_reqs() {
     std::string worker_pid = std::to_string(getpid());
 
     // open an endpoint
@@ -44,23 +44,45 @@ void handle_leader_reqs() {
         zmq::message_t request;
         zmq::recv_result_t res = socket.recv(request, zmq::recv_flags::none);
 
+        std::string response = "";
         std::string msg = request.to_string();
-    
-        
-        if (cmd::nodeCmds(cmd::extract_name(msg)) == cmd::NodeCMDType::Kill && 
-            cmd::extract_key(msg) == worker_pid
-        ) {
-            socket.send(zmq::buffer("OK"), zmq::send_flags::none);
-            exit(EXIT_SUCCESS);
+
+        if (msg.size() > 0) {
+            switch(msg.at(0)) {
+                case COMMAND: {
+                    Command cmd { msg.substr(1) };
+                    response = cmd.parse_cmd();
+                    break;
+                } 
+                case NODE_COMMAND:
+                    if (cmd::nodeCmds(cmd::extract_name(msg)) == cmd::NodeCMDType::Kill && 
+                        cmd::extract_key(msg.substr(1)) == worker_pid
+                    ) {
+                        socket.send(zmq::buffer("OK"), zmq::send_flags::none);
+                        exit(EXIT_SUCCESS);
+                    }
+                    break;
+                case RING_UPDATE:
+                    ring.update(msg.substr(1));    
+                    break;
+                case CACHE_UPDATE: {
+                    int old_size = cache.size();
+                    cache.import(msg.substr(1));
+                    response = std::to_string(cache.size() - old_size);
+                    break;
+                }
+                case ELECTION:
+                    break;
+
+                default:
+                    response = "Missing type char";
+            }
         }
 
-        Command cmd { msg };
-        std::string parsed = cmd.parse_cmd();
-
-        socket.send(zmq::buffer(parsed), zmq::send_flags::none);
+        socket.send(zmq::buffer(response), zmq::send_flags::none);
       
         if (stop) {
-            std::cerr << "Stopping worker node pid " << worker_pid << std::endl;
+            std::cout << "Stopping worker node pid " << worker_pid << std::endl;
             exit(EXIT_SUCCESS);
         }
     }
@@ -89,7 +111,7 @@ void handle_pings() {
             throw std::strerror(errno);
         }
     } catch (...) {
-        std::cerr << "Error communicating with leader: " << std::strerror(errno) << std::endl;
+        std::cout << "Error communicating with leader: " << std::strerror(errno) << std::endl;
         exit(EXIT_FAILURE);;
     }
 
@@ -108,7 +130,7 @@ void handle_pings() {
             ring.update(reply.to_string());    
             std::this_thread::sleep_for(1000ms);
         } catch (...) {
-            std::cerr << "Leader did not reply to ping" << std::endl;
+            std::cout << "Leader did not reply to ping" << std::endl;
             start_leader_election();
         }
     }

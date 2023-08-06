@@ -4,6 +4,9 @@
 
 #include "consistent-hashing.hpp"
 #include "globals.hpp"
+#include "worker.hpp"
+
+std::string PREFIX = std::string { CACHE_UPDATE };
 
 // echos one request
 void create_echo_socket(std::string port) {
@@ -34,7 +37,7 @@ void create_persist_socket(std::string port) {
     socket.send(zmq::buffer(first), zmq::send_flags::none);
 }
 
-std::string send_str(ServerNode *node, std::string str) {
+std::string send_str(ServerNode *node, std::string str, char type = 0) {
     zmq::message_t request;
     node->send(str);
     node->recv(request);
@@ -101,10 +104,13 @@ TEST(ConsistentHashingTests, ConsistentHashing) {
     std::string hash_339 = "a";
     std::string hash_343 = "do";
 
-    EXPECT_EQ(ch_ring.get(hash_2), node_b); //128
-    EXPECT_EQ(ch_ring.get(hash_152), node_a); //289
-    EXPECT_EQ(ch_ring.get(hash_339), node_c); //342
-    EXPECT_EQ(ch_ring.get(hash_343), node_b); //128
+    // b -> 128
+    // a - > 289
+    // c -> 342
+    EXPECT_EQ(ch_ring.get(hash_2), node_c);
+    EXPECT_EQ(ch_ring.get(hash_152), node_b);
+    EXPECT_EQ(ch_ring.get(hash_339), node_a);
+    EXPECT_EQ(ch_ring.get(hash_343), node_c);
 }
 
 
@@ -128,6 +134,7 @@ TEST(ConsistentHashingTests, ConnectionsUpdate) {
         Worker pid: three. Hash: 318 
         Worker pid: one. Hash: 349
     */
+
     // one
     cache.add("ztybwklsxwb", new StringEntry("z")); //349
     cache.add("j", new StringEntry("j")); //59
@@ -162,23 +169,35 @@ TEST(ConsistentHashingTests, ConnectionsUpdate) {
     
     ServerNode *node2_two = ch_ring.get_by_pid("two");
     EXPECT_EQ(node2_two->is_leader, true);
+    EXPECT_FALSE(ch_ring.is_begin(node2_two));
 
 
     
     ServerNode *node2_one = ch_ring.get_by_pid("one");
     EXPECT_EQ(node2_one->is_leader, false);
     std::string one_cache = send_str(node2_one, "1");
-    EXPECT_TRUE(one_cache == "ztybwklsxwb\nz\nj\nj\n" || one_cache == "j\nj\nztybwklsxwb\nz\n"); 
+    std::string exp1_v1 = PREFIX + "ztybwklsxwb\nz\nj\nj\n";
+    std::string exp1_v2 = PREFIX + "j\nj\nztybwklsxwb\nz\n";
+    EXPECT_TRUE(one_cache == exp1_v1 || one_cache == exp1_v2); 
+    EXPECT_FALSE(ch_ring.is_begin(node2_one));
+
 
     ServerNode *node2_three = ch_ring.get_by_pid("three");
     EXPECT_EQ(node2_three->is_leader, false);
     std::string three_cache = send_str(node2_three, "2");
-    EXPECT_TRUE(three_cache == "we\nwe\nweo\nweo\n" || three_cache == "weo\nweo\nwe\nwe\n"); 
+    std::string exp3_v1 = PREFIX + "we\nwe\nweo\nweo\n";
+    std::string exp3_v2 = PREFIX + "weo\nweo\nwe\nwe\n";
+    EXPECT_TRUE(three_cache == exp3_v1 || three_cache == exp3_v2); 
+    EXPECT_FALSE(ch_ring.is_begin(node2_three));
+
 
     ServerNode *node2_four = ch_ring.get_by_pid("four");
     EXPECT_EQ(node2_four->is_leader, false);
     std::string four_cache = send_str(node2_four, "2");
-    EXPECT_TRUE(four_cache == "vbecgeeh\nv\ngoxwizagf\ng\n" || four_cache == "goxwizagf\ng\nvbecgeeh\nv\n"); 
+    std::string exp4_v1 = PREFIX + "vbecgeeh\nv\ngoxwizagf\ng\n";
+    std::string exp4_v2 = PREFIX + "goxwizagf\ng\nvbecgeeh\nv\n";
+    EXPECT_TRUE(four_cache == exp4_v1 || four_cache == exp4_v2); 
+    EXPECT_TRUE(ch_ring.is_begin(node2_four));
 
 
     one.join();
@@ -243,11 +262,13 @@ TEST(ConsistentHashingTests, ConnectionsUpdate2) {
     
     ServerNode *node2_two = ch_ring.get_by_pid("two");
     EXPECT_EQ(node2_two->is_leader, false);
-    EXPECT_EQ(send_str(node2_two, "2"), "c\nc\n");
+    std::string exp2 = PREFIX + "c\nc\n";
+    EXPECT_EQ(send_str(node2_two, "2"), exp2);
 
     ServerNode *node2_four = ch_ring.get_by_pid("four");
     EXPECT_EQ(node2_four->is_leader, false);
-    EXPECT_EQ(send_str(node2_four, "4"), "36\n36\n");
+    std::string exp4 = PREFIX + "36\n36\n";
+    EXPECT_EQ(send_str(node2_four, "4"), exp4);
 
 
     two.join();
@@ -317,11 +338,13 @@ TEST(ConsistentHashingTests, ConnectionsUpdateWrapAround) {
 
     ServerNode *node2_four = ch_ring.get_by_pid("four");
     EXPECT_EQ(node2_four->is_leader, false);
-    EXPECT_EQ(send_str(node2_four, "4"), "36\n36\n");
+    std::string exp2 = PREFIX + "36\n36\n";
+    EXPECT_EQ(send_str(node2_four, "4"), exp2);
 
     ServerNode *node2_five = ch_ring.get_by_pid("five");
     EXPECT_EQ(node2_five->is_leader, false);
-    EXPECT_EQ(send_str(node2_five, "5"), "l\nl\n");
+    std::string exp5 = PREFIX + "l\nl\n";
+    EXPECT_EQ(send_str(node2_five, "5"), exp5);
 
     three.join();
     four.join();

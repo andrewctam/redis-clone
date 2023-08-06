@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <zmq.hpp>
+#include <mutex>
 
 int hash_function(const std::string &str);
 
@@ -53,6 +54,8 @@ private:
     bool dealer_active = false;
     std::string this_pid;
 public:
+    std::recursive_mutex mutex;
+
     zmq::context_t *dealer_context;
     zmq::socket_t *dealer_socket;
 
@@ -64,16 +67,21 @@ public:
     
     ServerNode *add(std::string pid, std::string endpoint, bool is_leader);
     void update(std::string internal_string);
-    
+
+    bool dealer_send(const std::string &msg);
+
     ServerNode *get(const std::string &str);
-
+    ServerNode *get_next_node(ServerNode *node);
     ServerNode *get_by_pid(const std::string &str);
-
-    int size() { return connected.size(); }
 
     std::string to_user_string();
     std::string to_internal_string();
 
+    void send_extracted_cache(ServerNode *left, ServerNode *right, bool wrap_around);
+
+
+    int size() { return connected.size(); }
+    bool is_begin(ServerNode *node) { return size() > 0 && node == *connected.begin(); }
 };
 
 
