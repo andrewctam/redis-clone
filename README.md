@@ -1,12 +1,18 @@
 # Redis Clone
 
-This project is a distributed in-memory cache cloning many of the features of Redis.
+This project is a distributed in-memory cache cloning some of features of Redis.
+
+Features include:
+- Key-value mapping for strings, ints, and lists in O(1) using an LRU replacement policy. Additional constant and linear time operations, such as getting keys, partial list ranges, and more. See [COMMANDS.md](./COMMANDS.md) for all commands.
+- Horizontal scalability, allowing nodes to join and leave dynamically.
+- Consistent hashing to distribute the cache and provide fault tolerance. As new nodes join, the cache can be split and shared.
+- Fault tolerance with leader elections. If a worker node detects the leader is no longer responding, a new one will be elected.
 
 # Installation
-- **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. Alternatively, you could also open this project on [GitHub codespaces](https://github.com/codespaces).
-- Clone this repository: `https://github.com/andrewctam/redis-clone.git`
+- **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. Alternatively, you can try to open this project on [GitHub codespaces](https://github.com/codespaces).
 - Install [cmake](https://cmake.org/install/).
 - Install [cppzmq](https://github.com/zeromq/cppzmq).
+- Clone this repository: `https://github.com/andrewctam/redis-clone.git`
 - In `redis-clone/build`, run `cmake ..` to create a makefile.
 - Finally, in `redis-clone/build` run `make` to run the makefile
 
