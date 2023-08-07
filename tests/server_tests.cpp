@@ -4,7 +4,7 @@
 #include <signal.h>
 #include <sys/prctl.h>
 #include <errno.h>
-#include <unordered_set>
+#include <vector>
 #include <iostream>
 #include <string>
 #include <random>
@@ -18,9 +18,7 @@ constexpr int END_OF_LINE = -1;
 int client_stdin;
 FILE *client_stdout;
 
-// read a line from the fd
-// returns an empty string if equal
-// returns the read string if not equal
+// read num chars from stdout, or until end of line if -1
 std::string check_stdout(int num) {
     int MAX_LEN = 512;
     char buf[MAX_LEN];
@@ -39,6 +37,22 @@ std::string check_stdout(int num) {
     return std::string(buf);
 }
 
+// compares a string to a substring
+bool check_substr(const std::string &line, const std::string &sub, bool print_err = true) {
+    bool res = line.compare(0, sub.size(), sub) == 0;
+    if (print_err && !res) {
+        std::cout << "Strings did not match!\nGot: " << line << ". Exp: " << sub << std::endl;
+    }
+    return res;
+}
+
+// reads a line frm stdout and compares it to a substring
+bool check_substr_stdout(const std::string &sub, bool print_err = true) {
+    std::string line = check_stdout(END_OF_LINE);
+    return check_substr(line, sub, print_err);
+}
+
+// sends a string to stdin
 int send_str(const char *str) {
     return write(client_stdin, str, strlen(str));
 }
@@ -99,30 +113,25 @@ TEST(ServerTests, SetUp) {
 }
 
 TEST(ServerTests, StartUp) {
-    std::string leader_start = "Started leader node with pid";
-    std::string worker_start = "Connected to worker node with pid:";
-
     int leader_count = 0;
     int worker_count = 0;
+    int client_count = 0;
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         std::string line = check_stdout(END_OF_LINE);
-
-        if (line.compare(0, leader_start.size(), leader_start) == 0) {
+        if (check_substr(line, "Started leader node with pid", false)) {
             leader_count++;
-        } else if (line.compare(0, worker_start.size(), worker_start) == 0) {
+        } else if (check_substr(line, "Connected to worker node with pid", false)) {
             worker_count++;
-        } else {
-            std::cout << line << std::endl;
-            FAIL();
+        } else if (line == "Client started!\n") {
+            EXPECT_EQ(check_stdout(3), "> ");
+            client_count++;
         }
     }
 
     EXPECT_EQ(leader_count, 1);
     EXPECT_EQ(worker_count, 3);
-
-    EXPECT_EQ(check_stdout(END_OF_LINE), "Client started!\n");
-    EXPECT_EQ(check_stdout(3), "> ");
+    EXPECT_EQ(client_count, 1);
 }
 
 TEST(ServerTests, BasicCache) {    
@@ -137,12 +146,12 @@ TEST(ServerTests, BasicCache) {
 
 
 TEST(ServerTests, DistributedRelocation) {
-    std::unordered_set<std::string> keys;
-    keys.insert("a");
+    std::vector<std::string> keys;
+    keys.emplace_back("a");
 
     for (int i = 0; i < 500; i++) {
         std::string key = randomKey();
-        keys.insert(key);
+        keys.emplace_back(key);
 
         std::string cmd = "set " + key + " 1\n";
 
@@ -154,14 +163,10 @@ TEST(ServerTests, DistributedRelocation) {
     // create a node to redistribute cache
     EXPECT_GT(send_str("create\n"), 0);
 
-    std::string line = check_stdout(END_OF_LINE);
-    std::string worker_created = "Worker node created with pid";
-    EXPECT_EQ(line.compare(0, worker_created.size(), worker_created), 0);
+    EXPECT_TRUE(check_substr_stdout("Worker node created with pid"));
     EXPECT_EQ(check_stdout(3), "> ");
 
-    line = check_stdout(END_OF_LINE);
-    std::string worker_start = "Connected to worker node with pid:";
-    EXPECT_EQ(line.compare(0, worker_start.size(), worker_start), 0);
+    EXPECT_TRUE(check_substr_stdout("Connected to worker node with pid:"));
 
     
     int count = 0;

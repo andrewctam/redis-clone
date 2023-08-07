@@ -7,7 +7,7 @@ using namespace std::chrono;
 
 //for mocking time in test
 extern int secs_offset;
-
+extern int ms_offset;
 inline seconds::rep time_secs() {
     return duration_cast<seconds>(
             system_clock::now().time_since_epoch()
@@ -17,7 +17,7 @@ inline seconds::rep time_secs() {
 inline milliseconds::rep time_ms() {
     return duration_cast<milliseconds>(
             system_clock::now().time_since_epoch()
-        ).count();
+        ).count() + ms_offset;
 }
 
 #endif

@@ -7,5 +7,6 @@
 void start_leader();
 void handle_internal_requests();
 void handle_client_requests();
+void handle_nodes_cleanup();
 
 #endif

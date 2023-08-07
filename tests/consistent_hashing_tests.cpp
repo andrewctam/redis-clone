@@ -113,6 +113,49 @@ TEST(ConsistentHashingTests, ConsistentHashing) {
     EXPECT_EQ(ch_ring.get(hash_343), node_c);
 }
 
+TEST(ConsistentHashingTests, Removing) {
+    ConsistentHashing ch_ring;
+
+    // nodes creates with last ping now
+    EXPECT_TRUE(ch_ring.add("one", "tcp://localhost:25551", false) != nullptr);
+    EXPECT_TRUE(ch_ring.add("two", "tcp://localhost:25552", false) != nullptr);
+    EXPECT_TRUE(ch_ring.add("three", "tcp://localhost:25553", true) != nullptr); // can not remove leader
+
+    ServerNode *node_one = ch_ring.get_by_pid("one");
+    ServerNode *node_three = ch_ring.get_by_pid("three");
+
+    // advance time and refresh node one
+    ms_offset = ACCEPTABLE_TIME + 1;
+    node_one->refresh_last_ping();
+
+    ch_ring.clean_up_old_nodes();
+
+    EXPECT_EQ(ch_ring.size(), 2);
+    EXPECT_EQ(ch_ring.get_by_pid("one"), node_one);
+    EXPECT_EQ(ch_ring.get_by_pid("two"), nullptr);
+    EXPECT_EQ(ch_ring.get_by_pid("three"), node_three);
+    ms_offset = 0;
+}
+
+TEST(ConsistentHashingTests, MarkForRemoval) {
+    ConsistentHashing ch_ring;
+
+    EXPECT_TRUE(ch_ring.add("one", "tcp://localhost:25551", false) != nullptr);
+    EXPECT_TRUE(ch_ring.add("two", "tcp://localhost:25552", false) != nullptr);
+    EXPECT_TRUE(ch_ring.add("three", "tcp://localhost:25553", false) != nullptr);
+
+    ServerNode *node_one = ch_ring.get_by_pid("one");
+    ServerNode *node_two = ch_ring.get_by_pid("two");
+    ServerNode *node_three = ch_ring.get_by_pid("three");
+
+    node_one->mark_for_removal();
+    ch_ring.clean_up_old_nodes();
+
+    EXPECT_EQ(ch_ring.size(), 2);
+    EXPECT_EQ(ch_ring.get_by_pid("one"), nullptr);
+    EXPECT_EQ(ch_ring.get_by_pid("two"), node_two);
+    EXPECT_EQ(ch_ring.get_by_pid("three"), node_three);
+}
 
 TEST(ConsistentHashingTests, ConnectionsUpdate) {
     cache = LRUCache();

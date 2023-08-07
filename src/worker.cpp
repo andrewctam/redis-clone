@@ -48,26 +48,28 @@ void handle_reqs() {
         std::string msg = request.to_string();
 
         if (msg.size() > 0) {
+            std::string msg_body = msg.substr(1);
             switch(msg.at(0)) {
                 case COMMAND: {
-                    Command cmd { msg.substr(1) };
+                    Command cmd { msg_body };
                     response = cmd.parse_cmd();
                     break;
                 } 
                 case NODE_COMMAND:
-                    if (cmd::nodeCmds(cmd::extract_name(msg)) == cmd::NodeCMDType::Kill && 
-                        cmd::extract_key(msg.substr(1)) == worker_pid
+                    if (cmd::nodeCmds(cmd::extract_name(msg_body)) == cmd::NodeCMDType::Kill && 
+                        cmd::extract_key(msg_body) == worker_pid
                     ) {
                         socket.send(zmq::buffer("OK"), zmq::send_flags::none);
+                        std::cout << "Stopping " << worker_pid << std::endl;
                         exit(EXIT_SUCCESS);
                     }
                     break;
                 case RING_UPDATE:
-                    ring.update(msg.substr(1));    
+                    ring.update(msg_body);    
                     break;
                 case CACHE_UPDATE: {
                     int old_size = cache.size();
-                    cache.import(msg.substr(1));
+                    cache.import(msg_body);
                     response = std::to_string(cache.size() - old_size);
                     break;
                 }
@@ -91,8 +93,8 @@ void handle_reqs() {
 void handle_pings() {
     // wait until the reqs thread sets the endpoint
     endpoint_mutex.lock();
-
     std::string worker_pid = std::to_string(getpid());
+    std::string ping = worker_pid + " " + endpoint;
 
     // open connection to leader to send endpoint of this
     zmq::context_t leader_context{1};
@@ -101,7 +103,7 @@ void handle_pings() {
     leader_socket.connect("tcp://localhost:" + std::to_string(internal_port));
     // send pid and endpoint to leader
     leader_socket.set(zmq::sockopt::rcvtimeo, 1000);
-    leader_socket.send(zmq::buffer(worker_pid + " " + endpoint), zmq::send_flags::none);
+    leader_socket.send(zmq::buffer(ping), zmq::send_flags::none);
 
     // verify the endpoint was successfully recieved
     try {
@@ -116,9 +118,7 @@ void handle_pings() {
     }
 
     while (true) {
-        // send ping to leader
-        leader_socket.send(zmq::message_t(), zmq::send_flags::none);
-
+        leader_socket.send(zmq::message_t(ping), zmq::send_flags::none);
         // verify the ping was successfully recieved
         try {
             zmq::message_t reply;

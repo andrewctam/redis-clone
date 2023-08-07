@@ -17,9 +17,18 @@ using namespace std::chrono_literals;
 void start_leader() {    
     std::thread client_thread(handle_client_requests);
     std::thread internal_thread(handle_internal_requests);
+    std::thread cleanup_thread(handle_nodes_cleanup);
 
     client_thread.join();
     internal_thread.join();
+    cleanup_thread.join();
+}
+
+void handle_nodes_cleanup() {
+    while (true) {
+        ring.clean_up_old_nodes();
+        std::this_thread::sleep_for(1000ms);
+    }
 }
 
 void handle_internal_requests() {
@@ -29,7 +38,6 @@ void handle_internal_requests() {
     zmq::context_t internal_context{1};
     zmq::socket_t internal_socket{internal_context, zmq::socket_type::rep};
     internal_socket.bind("tcp://*:" + std::to_string(internal_port));
-    internal_socket.set(zmq::sockopt::rcvtimeo, 200);
     ring.add(leader_pid, internal_socket.get(zmq::sockopt::last_endpoint), true);
 
     ServerNode *this_node = ring.get_by_pid(leader_pid);
@@ -38,35 +46,42 @@ void handle_internal_requests() {
             zmq::message_t reply;
             zmq::recv_result_t res = internal_socket.recv(reply, zmq::recv_flags::none);
             bool new_added = false;
+            std::string ping_msg = reply.to_string();
 
             ServerNode *next_node = nullptr;
             ServerNode *added = nullptr;
             bool wrap_around = false;
-            // new connections contain a message, pings are empty
-            if (reply.to_string().size() > 0) {
-                new_added = true;
-                std::string payload = reply.to_string();
 
-                next_node = ring.get_next_node(this_node);
-                bool wrap_around = ring.is_begin(next_node);
+            int sep = ping_msg.find(" ");
+            if (sep != std::string::npos) {
+                std::string pid = ping_msg.substr(0, sep);
+                std::string endpoint = ping_msg.substr(sep + 1); 
 
-                // add to ring
-                int sep = payload.find(" ");
-                std::string pid = payload.substr(0, sep);
-                std::string endpoint = payload.substr(sep + 1); 
-                added = ring.add(pid, endpoint, false);
+                ServerNode *cur = ring.get(pid + endpoint);
+                if (cur && cur->pid == pid && cur->endpoint == endpoint) {
+                    cur->refresh_last_ping();
+                } else {
+                    // add this to ring
+                    new_added = true;
 
-                std::cout << "Connected to worker node with pid: " << pid 
-                    << " and endpoint: " << endpoint << std::endl;
+                    next_node = ring.get_next_node(this_node);
+                    bool wrap_around = ring.is_begin(next_node);
+
+                
+                    added = ring.add(pid, endpoint, false);
+                    
+                    std::cout << "Connected to worker node with pid: " << pid 
+                        << " and endpoint: " << endpoint << std::endl;
+                }
             }
-           
+
+            ring.clean_up_old_nodes();
             std::string internal = ring.to_internal_string();
 
             //send latest connections, RING_UPDATE prefix not needed for ping
             internal_socket.send(zmq::buffer(internal), zmq::send_flags::none);
 
             if (new_added) {
-                
                 if (next_node && added && ring.get_next_node(this_node) == added) {
                     ring.send_extracted_cache(this_node, next_node, wrap_around);
                 }

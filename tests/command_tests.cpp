@@ -8,6 +8,7 @@ bool monitoring = false;
 bool stop = false;
 LRUCache cache {};
 int secs_offset = 0;
+int ms_offset = 0;
 int client_port = 5555;
 int internal_port = -1;
 ConsistentHashing ring;

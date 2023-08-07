@@ -4,12 +4,14 @@
 #include "consistent-hashing.hpp"
 #include "globals.hpp"
 #include "worker.hpp"
+#include "unix_times.hpp"
 
 int hash_function(const std::string &str) {
     return std::hash<std::string>()(str) % 360;
 }
 
 ServerNode::ServerNode(std::string pid, std::string endpoint, bool is_leader) :
+    last_ping(time_ms()),
     pid(pid), 
     endpoint(endpoint),
     hash(hash_function(pid + endpoint)),
@@ -29,7 +31,6 @@ ServerNode::~ServerNode() {
     if (socket) {
         delete socket;
     }
-    
     if (context) {
         delete context;
     }
@@ -55,6 +56,7 @@ bool ServerNode::recv(zmq::message_t &request) {
         return false;
     }
 }
+
 
 ConsistentHashing::ConsistentHashing(std::string pid) : this_pid(pid) { }
 
@@ -94,6 +96,7 @@ ServerNode *ConsistentHashing::add(std::string pid, std::string endpoint, bool i
     mutex.unlock();
     return node;
 }
+
 
 ServerNode *ConsistentHashing::get(const std::string &str) {
     if (connected.size() == 0) {
@@ -136,6 +139,18 @@ ServerNode *ConsistentHashing::get_by_pid(const std::string &target) {
     return nullptr;
 }
 
+ServerNode *ConsistentHashing::get_next_node(ServerNode *node) {
+    auto next_it = connected.find(node);
+    if (next_it == connected.end()) {
+        return nullptr;
+    }
+
+    if (++next_it == connected.end()) { 
+        return *connected.begin();
+    }
+
+    return  *next_it;
+}
 bool ConsistentHashing::dealer_send(const std::string &msg) {
     if (dealer_active && dealer_socket) {
         mutex.lock();
@@ -183,18 +198,6 @@ std::string ConsistentHashing::to_internal_string() {
 }
 
 
-ServerNode *ConsistentHashing::get_next_node(ServerNode *node) {
-    auto next_it = connected.find(node);
-    if (next_it == connected.end()) {
-        return nullptr;
-    }
-
-    if (++next_it == connected.end()) { 
-        return *connected.begin();
-    }
-
-    return  *next_it;
-}
 
 void ConsistentHashing::update(std::string internal_string) {
     mutex.lock();
@@ -255,9 +258,12 @@ void ConsistentHashing::update(std::string internal_string) {
     auto it2 = connected.begin();
     while (it2 != connected.end()) {
         ServerNode *cur = *it2;
-        if (new_nodes.find(cur) == new_nodes.end() &&
-            existing_nodes.find(cur) == existing_nodes.end()) {
+        bool old = new_nodes.find(cur) == new_nodes.end() 
+            && existing_nodes.find(cur) == existing_nodes.end();
+
+        if (old) {
             it2 = connected.erase(it2);
+            delete cur;
         } else {
             it2++;
         }
@@ -331,6 +337,24 @@ void ConsistentHashing::send_extracted_cache(ServerNode *left, ServerNode *right
                 socket.send(zmq::message_t(), zmq::send_flags::sndmore);
                 socket.send(zmq::buffer(updated), zmq::send_flags::none);
             }
+        }
+    }
+
+    mutex.unlock();
+}
+
+void ConsistentHashing::clean_up_old_nodes() {
+    mutex.lock();
+
+    auto it = connected.begin();
+    while (it != connected.end()) {
+        ServerNode *cur = *it;
+        if (!cur->is_leader && cur->too_long_since_ping()) {
+            std::cout << "Removed node " << cur->pid << std::endl;
+            it = connected.erase(it);
+            delete cur;
+        } else {
+            it++;
         }
     }
 
