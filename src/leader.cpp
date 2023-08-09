@@ -14,7 +14,9 @@
 
 using namespace std::chrono_literals;
 
-void start_leader() {    
+void start_leader() {
+    ring.set_up_dealer();
+    
     std::thread client_thread(handle_client_requests);
     std::thread internal_thread(handle_internal_requests);
     std::thread cleanup_thread(handle_nodes_cleanup);
@@ -26,8 +28,8 @@ void start_leader() {
 
 void handle_nodes_cleanup() {
     while (true) {
-        ring.clean_up_old_nodes();
         std::this_thread::sleep_for(1000ms);
+        ring.clean_up_old_nodes();
     }
 }
 
@@ -90,8 +92,8 @@ void handle_internal_requests() {
                 ring.dealer_send(RING_UPDATE + internal);
                 
                 ring.mutex.lock();
-                int count = 1;
-                while (count < ring.size()) {
+                int count = 0;
+                while (count < ring.dealer_connected) {
                     try {
                         zmq::message_t dealer_request;
                         // empty envelope
@@ -164,12 +166,15 @@ void handle_client_requests() {
                     break;
                 }
                 case cmd::NodeCMDType::Kill: {
-                    ServerNode *node = ring.get_by_pid(cmd::extract_key(msg));
-                    if (!node) {
-                        reply = "Node not found";
-                    } else if (node->pid == leader_pid) {
+                    std::string key = cmd::extract_key(msg);
+                    if (key == "leader" || key == leader_pid) {
                         client_socket.send(zmq::buffer("OK"), zmq::send_flags::none);
                         exit(EXIT_SUCCESS);
+                    }
+
+                    ServerNode *node = ring.get_by_pid(key);
+                    if (!node) {
+                        reply = "Node not found";
                     } else {
                         node->send(NODE_COMMAND + msg);
                         node->recv(request);
@@ -205,8 +210,8 @@ void handle_client_requests() {
             // ask for worker node responses
             // stop after all responses (or timeout)
             ring.mutex.lock();
-            int count = 1;
-            while (count < ring.size()) {
+            int count = 0;
+            while (count < ring.dealer_connected) {
                 try {
                     zmq::message_t dealer_request;
                     // empty envelope

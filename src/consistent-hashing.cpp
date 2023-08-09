@@ -49,12 +49,18 @@ bool ServerNode::recv(zmq::message_t &request) {
     if (!socket) {
         return false;
     }
-    try {
-        zmq::recv_result_t res = socket->recv(request, zmq::recv_flags::none);
-        return true;
-    } catch (...) {
-        return false;
+    while (true) {
+        try {
+            zmq::recv_result_t res = socket->recv(request, zmq::recv_flags::none);
+            if (!res.has_value()) {
+                throw std::strerror(errno);
+            }
+            return true;
+        } catch (...) {
+            std::cout << "Failed to recieve..." << std::endl;
+        }
     }
+    
 }
 
 
@@ -74,10 +80,10 @@ void ConsistentHashing::set_up_dealer() {
         dealer_socket = new zmq::socket_t(*dealer_context, zmq::socket_type::dealer); 
         dealer_socket->set(zmq::sockopt::rcvtimeo, 200);
 
-        std::string my_pid = this_pid;
         for (auto it = connected.begin(); it != connected.end(); ++it) {
-            if ((*it)->pid != my_pid) {
+            if ((*it)->pid != this_pid) {
                 dealer_socket->connect((*it)->endpoint);
+                dealer_connected++;
             }
             
         }
@@ -91,6 +97,7 @@ ServerNode *ConsistentHashing::add(std::string pid, std::string endpoint, bool i
 
     if (dealer_active && this_pid != pid) {
         dealer_socket->connect(endpoint);
+        dealer_connected++;
     }
 
     mutex.unlock();
@@ -140,6 +147,9 @@ ServerNode *ConsistentHashing::get_by_pid(const std::string &target) {
 }
 
 ServerNode *ConsistentHashing::get_next_node(ServerNode *node) {
+    if (!node) {
+        return nullptr;
+    }
     auto next_it = connected.find(node);
     if (next_it == connected.end()) {
         return nullptr;
@@ -154,7 +164,7 @@ ServerNode *ConsistentHashing::get_next_node(ServerNode *node) {
 bool ConsistentHashing::dealer_send(const std::string &msg) {
     if (dealer_active && dealer_socket) {
         mutex.lock();
-        for (int i = 0; i < ring.size() - 1; i++) {
+        for (int i = 0; i < dealer_connected; i++) {
             dealer_socket->send(zmq::message_t(), zmq::send_flags::sndmore);
             dealer_socket->send(zmq::buffer(msg), zmq::send_flags::none);
         }
@@ -338,6 +348,20 @@ void ConsistentHashing::send_extracted_cache(ServerNode *left, ServerNode *right
                 socket.send(zmq::buffer(updated), zmq::send_flags::none);
             }
         }
+
+        int count = 0;
+        while (count < nodes_to_update.size()) {
+            try {
+                zmq::message_t request;
+                // empty envelope
+                zmq::recv_result_t res = socket.recv(request, zmq::recv_flags::none);
+                // actual result
+                res = socket.recv(request, zmq::recv_flags::none);
+                count++;
+            } catch (...) {
+                std::cout << "Recv " << count << " out of " << nodes_to_update.size() << std::endl;
+            }
+        }
     }
 
     mutex.unlock();
@@ -349,11 +373,59 @@ void ConsistentHashing::clean_up_old_nodes() {
     auto it = connected.begin();
     while (it != connected.end()) {
         ServerNode *cur = *it;
-        if (!cur->is_leader && cur->too_long_since_ping()) {
-            std::cout << "Removed node " << cur->pid << std::endl;
+        if (!cur->is_leader && cur->pid != this_pid && cur->too_long_since_ping()) {
+            if (dealer_active) {
+                dealer_socket->disconnect(cur->endpoint);
+                dealer_connected--;
+            }
             it = connected.erase(it);
             delete cur;
         } else {
+            it++;
+        }
+    }
+
+    mutex.unlock();
+}
+
+//returns if a > b
+bool pid_greater(std::string a, std::string b) {
+    if (a.size() != b.size()) {
+        return a.size() > b.size();
+    }
+
+    return a > b;
+}
+
+std::vector<ServerNode*> ConsistentHashing::election_candidates() {
+    mutex.lock();
+    std::vector<ServerNode*> candidates;
+
+    for (auto it = connected.begin(); it != connected.end(); it++) {
+        ServerNode *cur = *it;
+        if (!cur->is_leader && pid_greater(cur->pid, this_pid)) {
+            candidates.emplace_back(cur);
+        }
+    }
+
+    mutex.unlock();
+    return candidates;
+}
+
+void ConsistentHashing::election_cleanup() {
+    mutex.lock();
+    std::vector<ServerNode*> candidates;
+        
+    auto it = connected.begin();
+    while (it != connected.end()) {
+        ServerNode *cur = *it;
+        // remove old leader and this worker node
+        // will get readded once promoted to leader
+        if (cur->is_leader || cur->pid == this_pid)  {
+            it = connected.erase(it);
+            delete cur;
+        } else {
+            cur->refresh_last_ping();
             it++;
         }
     }

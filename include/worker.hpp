@@ -13,13 +13,13 @@ void start_worker();
 void handle_reqs();
 void handle_pings();
 
-void start_leader_election();
-void promote_to_leader();
+void leader_election();
 
 constexpr char COMMAND = '0';
 constexpr char NODE_COMMAND = '1';
 constexpr char RING_UPDATE= '2';
 constexpr char CACHE_UPDATE = '3';
-constexpr char ELECTION = '4';
+constexpr char ELECTION_MSG = '4';
+constexpr char ELECTION_VICTORY = '5';
 
 #endif

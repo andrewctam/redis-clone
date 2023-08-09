@@ -92,8 +92,9 @@ int main(int argc, char *argv[]) {
     socket.set(zmq::sockopt::rcvtimeo, 1000);
     std::cout << "Client started!" << std::endl;
 
-    int count = 0;
     while (true) {
+        bool got_reply = false;
+
         std::cout << "> ";
         std::flush(std::cout);
 
@@ -108,17 +109,20 @@ int main(int argc, char *argv[]) {
     
         socket.send(zmq::buffer(input), zmq::send_flags::none);
         
-        try {
-            zmq::message_t reply{};
-            zmq::recv_result_t res = socket.recv(reply, zmq::recv_flags::none);
-            if (!res.has_value()) {
-                throw std::strerror(errno);
+        while (!got_reply) {
+            try {
+                zmq::message_t reply;
+                zmq::recv_result_t res = socket.recv(reply, zmq::recv_flags::none);
+                if (!res.has_value()) {
+                    throw std::strerror(errno);
+                }
+                got_reply = true;
+                std::cout << reply.to_string() << std::endl;
+            } catch (...) {
+                std::cout << "Error communicating with server: " << std::strerror(errno) << std::endl;
             }
-
-            std::cout << reply.to_string() << std::endl;
-        } catch (...) {
-            std::cout << "Error communicating with server: " << std::strerror(errno) << std::endl;
         }
+        
     }
 
     return EXIT_SUCCESS;

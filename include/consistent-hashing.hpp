@@ -8,8 +8,11 @@
 
 #include "unix_times.hpp"
 
+constexpr milliseconds::rep ACCEPTABLE_TIME = 2000;
+
 int hash_function(const std::string &str);
-constexpr milliseconds::rep ACCEPTABLE_TIME = 5000;
+bool pid_greater(std::string a, std::string b);
+
 
 class ServerNode {
 private:
@@ -66,6 +69,7 @@ public:
 
     zmq::context_t *dealer_context;
     zmq::socket_t *dealer_socket;
+    int dealer_connected;
 
     // param mainly used to pass in controlled var for test cases, otherwise just use default
     ConsistentHashing(std::string pid = std::to_string(getpid()));
@@ -89,6 +93,10 @@ public:
     bool is_begin(ServerNode *node) { return size() > 0 && node == *connected.begin(); }
 
     void clean_up_old_nodes();
+
+    // returns all nodes with a pid greater than this_pid
+    std::vector<ServerNode*> election_candidates();
+    void election_cleanup();
 };
 
 

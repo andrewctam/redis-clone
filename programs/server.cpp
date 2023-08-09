@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     // leader node
     int pid = fork();
     if (pid == 0) { //child
-        if (prctl(PR_SET_PDEATHSIG, SIGINT) == -1 || getppid() != ppid) {
+        if (prctl(PR_SET_PDEATHSIG, SIGTERM) == -1 || getppid() != ppid) {
             exit(EXIT_FAILURE);
         }
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < nodes - 1; i++) {
         int pid = fork();
         if (pid == 0) { //child
-            if (prctl(PR_SET_PDEATHSIG, SIGINT) == -1 || getppid() != ppid) {
+            if (prctl(PR_SET_PDEATHSIG, SIGTERM) == -1 || getppid() != ppid) {
                 exit(EXIT_FAILURE);
             }
 

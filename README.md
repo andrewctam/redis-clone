@@ -1,12 +1,12 @@
 # Redis Clone
 
-This project is a distributed in-memory cache cloning some of features of Redis.
+This is a distributed in-memory cache cloning features of Redis.
 
 Features include:
 - Key-value mapping for strings, ints, and lists in O(1) using an LRU replacement policy. Additional constant and linear time operations, such as getting keys, partial list ranges, and more. See [COMMANDS.md](./COMMANDS.md) for all commands.
 - Horizontal scalability, allowing nodes to join and leave dynamically.
 - Consistent hashing to distribute the cache and provide fault tolerance. As new nodes join, the cache can be split and shared.
-- Fault tolerance with leader elections. If a worker node detects the leader is no longer responding, a new one will be elected.
+- Fault tolerance with leader elections. If a worker node detects the leader is no longer responding, a new one will be elected with a Bully algorithm.
 
 # Installation
 - **This project was developed on Ubuntu-22.04.** On Windows, you need to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) before following the next steps. Alternatively, you can try to open this project on [GitHub codespaces](https://github.com/codespaces).
@@ -28,7 +28,7 @@ make
 
 # Testing
 - Run `cmake -DTest=ON ..` in `redis-clone/build` to build the tests.
-- In `redis-clone/build/tests` execute `./tests/tests` to run the tests
+- In `redis-clone/build` execute `./tests/tests` to run the tests
 
 # Usage
 - If you built this project from source, go to `redis-clone/build/programs`. Otherwise if you downloaded a release, unzip the file and enter the unzipped folder.

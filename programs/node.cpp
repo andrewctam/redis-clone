@@ -98,7 +98,6 @@ int main(int argc, char *argv[]) {
     }
 
     if (leader) {
-        ring.set_up_dealer();
         start_leader();
     } else {
         start_worker();

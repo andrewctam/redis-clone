@@ -31,7 +31,6 @@ void create_persist_socket(std::string port) {
     zmq::recv_result_t res = socket.recv(request, zmq::recv_flags::none);
     socket.send(zmq::buffer("PERSISTING"), zmq::send_flags::none);
     std::string first = request.to_string();
-
     //send first reply on second
     res = socket.recv(request, zmq::recv_flags::none);
     socket.send(zmq::buffer(first), zmq::send_flags::none);
@@ -43,8 +42,26 @@ std::string send_str(ServerNode *node, std::string str, char type = 0) {
     node->recv(request);
     //extra \0 without substr
     std::string res = request.to_string();
-
     return res.substr(0, res.size());
+}
+
+TEST(ConsistentHashingTests, PidGreater) {
+    EXPECT_EQ(pid_greater("456", "123"), true);
+    EXPECT_EQ(pid_greater("123", "456"), false);
+
+    EXPECT_EQ(pid_greater("111", "99"), true);
+    EXPECT_EQ(pid_greater("99", "111"), false);
+
+    EXPECT_EQ(pid_greater("111", "101"), true);
+    EXPECT_EQ(pid_greater("101", "111"), false);
+
+    EXPECT_EQ(pid_greater("10", "0"), true);
+    EXPECT_EQ(pid_greater("0", "10"), false);
+
+    EXPECT_EQ(pid_greater("1", ""), true);
+    EXPECT_EQ(pid_greater("", "1"), false);
+
+    EXPECT_EQ(pid_greater("123", "123"), false);
 }
 
 TEST(ConsistentHashingTests, Connections) {
@@ -393,3 +410,4 @@ TEST(ConsistentHashingTests, ConnectionsUpdateWrapAround) {
     four.join();
     five.join();
 }
+

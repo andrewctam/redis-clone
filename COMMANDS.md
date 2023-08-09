@@ -26,7 +26,8 @@
 - `create`
     - Creates a new node.
 - `kill pid`
-    - Kills the node with the specified pid.
+    - Kills the node with the specified pid. 
+    - You can also use `kill leader` to kill the leader.
 - `shutdown`
     - Shuts down the server and stops all nodes.
 - `dist`

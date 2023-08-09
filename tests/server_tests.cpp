@@ -52,6 +52,16 @@ bool check_substr_stdout(const std::string &sub, bool print_err = true) {
     return check_substr(line, sub, print_err);
 }
 
+// keeps reading lines from stdout until a match is found
+void read_until_substr(const std::string &sub, bool print_err = false) {
+    while (true) {
+        std::string line = check_stdout(END_OF_LINE);
+        if (check_substr(line, sub, print_err)) {
+            return;
+        }
+    }
+}
+
 // sends a string to stdin
 int send_str(const char *str) {
     return write(client_stdin, str, strlen(str));
@@ -199,4 +209,24 @@ TEST(ServerTests, DistributedRelocation) {
         std::flush(std::cout);
     }
     
+}
+
+
+TEST(ServerTests, LeaderElections) {
+    for (int i = 0; i < 3; i++) {
+        send_str("kill leader\n");
+        read_until_substr("Started leader"); 
+        sleep(1);
+        
+        EXPECT_GT(send_str("set a 1\n"), 0);
+        read_until_substr("SUCCESS");
+        EXPECT_EQ(check_stdout(3), "> ");
+
+        EXPECT_GT(send_str("get a\n"), 0);
+        EXPECT_EQ(check_stdout(END_OF_LINE), "1\n");
+        EXPECT_EQ(check_stdout(3), "> ");
+    }
+
+    send_str("kill leader\n");
+    EXPECT_EQ(check_stdout(3), "OK");    
 }
